@@ -39,5 +39,5 @@ Additional spells, file type support, and features can be added to the CLI based
 
 ---
 
-Please note that some spells (Enchant, Prestidigitation) are not fully defined yet and their implementation details are subject to change.
+Please note that some spells (Spellcraft, Unseen_Servant) are not fully defined yet and their implementation details are subject to change.
 
