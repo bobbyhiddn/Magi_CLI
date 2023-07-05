@@ -25,7 +25,13 @@ Magi CLI is implemented in Python, using the Click library. It provides a variet
 
 ## Usage
 
-Magi CLI can be run without prefacing each command with 'python magi_cli.py'. Just enter the spell name and the required arguments to use it.
+Magi CLI can be run without prefacing each command with 'python magi_cli.py'. This is done by installing it with pip.
+
+```bash
+pip install .
+```
+
+ Just enter the spell name and the required arguments to use it.
 
 Example:
 
