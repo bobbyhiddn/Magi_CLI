@@ -11,13 +11,12 @@ Magi CLI is implemented in Python, using the Click library. It provides a variet
 - **Fireball**: Recursively delete a file or directory, then move it into a '.graveyard' directory.
 - **Necromancy**: Create a '.graveyard' directory to store deleted files.
 - **Divine**: Display all contents and attributes of a file or directory.
-- **Raise Dead**: List all files in the '.graveyard' directory.
-- **Raise**: Restore a file from the '.graveyard' directory.
+- **Raise_Dead**: List all files in the '.graveyard' directory and restores them if desired.
 - **Enchant**: Convert a file to a different file type. (Details to be defined)
 - **Cast**: Execute a file based on its extension. Supports Python and Bash scripts.
 - **Prestidigitation**: Generate content in a file or provide a response using an AI model like GPT-4. (Details to be defined)
 - **Spellcraft**: Macro multiple commands and register them in '.spell' files. The commands are saved in the order they were input and can be executed in sequence.
-- **Unseen Servant**: Schedule spells to be cast at regular intervals. Can run any '.spell' file on a schedule.
+- **Unseen_Servant**: Schedule spells to be cast at regular intervals. Can run any '.spell' file on a schedule.
 
 ## File Structure
 
