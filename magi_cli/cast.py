@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import click
+import click # type: ignore
 import subprocess
 import sys
 import os
@@ -9,70 +9,71 @@ import inspect
 from datetime import datetime
 import glob
 from pathlib import Path
-from click import Context
+from click import Context # type: ignore
+
+@click.command()
+@click.argument('input', nargs=-1)
+def cast(input):
+    input = " ".join(input)  # join input arguments into one string if there are multiple
+    if input in cli.list_commands(ctx=None):
+        cli() # type: ignore
+    elif os.path.isfile(input):  # Check if file exists
+        if input.endswith(".py"):  # If it's a Python script
+            execute_python_file(input)  # execute the Python script
+        else:  # if it's not a Python script, it might be a 'spell'
+            execute_spell_file(input.replace(".spell", ""))  # execute the spell
+    else:
+        cli() # type: ignore
 
 @click.group()
 @click.pass_context
 def cli(ctx):
-    ctx.ensure_object(dict)
-    if ctx.invoked_subcommand is None:
-        filename = ctx.args[0] if ctx.args else None
-        if filename and os.path.isfile(filename):
-            if filename.endswith('.py'):
-                execute_python_file(filename)
-            elif filename.endswith('.spell'):
-                execute_spell_file(filename.replace('.spell', ''))
-            else:
-                click.echo('Invalid file type. Usage: cast <filename.py> or <filename.spell> or cast [OPTIONS] COMMAND [ARGS]...')
-        else:
-            click.echo('File does not exist. Usage: cast <filename.py> or <filename.spell> or cast [OPTIONS] COMMAND [ARGS]...')
+    """A Python CLI for casting spells."""
+    pass
 
 
 def execute_python_file(filename):
     subprocess.run([sys.executable, filename], check=True)
 
 def execute_spell_file(spell_file):
-    # Assuming .spell files are stored in .tome directory
     tome_dir = ".tome"
-    spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
-    
-    # Check if the file exists
+    if not spell_file.startswith(tome_dir):
+        spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
+    else:
+        spell_file_path = f"{spell_file}.spell"
+
     if not os.path.exists(spell_file_path):
         click.echo(f"Could not find {spell_file}.spell in .tome directory.")
         return
 
-    # Open and read the file
     with open(spell_file_path, 'r') as file:
         lines = file.readlines()
 
-    # Loop through the lines in the file, and execute each as a command
     for line in lines:
-        # You might want to do some error checking here to make sure the command is valid
         os.system(line.strip())
 
+# @click.command()
+# @click.argument('spell_file', required=True)
+# def cast(spell_file):
+#     """Executes the commands in a .spell file."""
 
-@click.command()
-@click.argument('spell_file', required=True)
-def cast(spell_file):
-    """Executes the commands in a .spell file."""
-
-    # Assuming .spell files are stored in .tome directory
-    tome_dir = ".tome"
-    spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
+#     # Assuming .spell files are stored in .tome directory
+#     tome_dir = ".tome"
+#     spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
     
-    # Check if the file exists
-    if not os.path.exists(spell_file_path):
-        click.echo(f"Could not find {spell_file}.spell in .tome directory.")
-        return
+#     # Check if the file exists
+#     if not os.path.exists(spell_file_path):
+#         click.echo(f"Could not find {spell_file}.spell in .tome directory.")
+#         return
 
-    # Open and read the file
-    with open(spell_file_path, 'r') as file:
-        lines = file.readlines()
+#     # Open and read the file
+#     with open(spell_file_path, 'r') as file:
+#         lines = file.readlines()
 
-    # Loop through the lines in the file, and execute each as a command
-    for line in lines:
-        # You might want to do some error checking here to make sure the command is valid
-        os.system(line.strip())
+#     # Loop through the lines in the file, and execute each as a command
+#     for line in lines:
+#         # You might want to do some error checking here to make sure the command is valid
+#         os.system(line.strip())
 
 
 @click.command()
@@ -293,4 +294,4 @@ cli.add_command(unseen_servant, name='uss')
 cli.add_command(ponder, name='pn')
 
 if __name__ == "__main__":
-    cli()
+    cli() # type: ignore

@@ -9,7 +9,7 @@ setup(
     ],
     entry_points={
         'console_scripts': [
-            'cast = magi_cli.cast:cli'
+            'cast = magi_cli.cast:cast'
         ],
     },
 )

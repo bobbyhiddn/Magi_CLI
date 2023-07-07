@@ -2,11 +2,9 @@ README.md
 setup.py
 Magi_CLI/__init__.py
 Magi_CLI/cast.py
-Magi_CLI/spells.py
 magi_cli/__init__.py
 magi_cli/cast.py
 magi_cli/spell_book.py
-magi_cli/spells.py
 magi_cli.egg-info/PKG-INFO
 magi_cli.egg-info/SOURCES.txt
 magi_cli.egg-info/dependency_links.txt

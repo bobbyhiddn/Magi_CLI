@@ -21,7 +21,7 @@ Magi CLI is implemented in Python, using the Click library. It provides a variet
 ## File Structure
 
 - **cast.py**: Main script that adds all the commands and starts the CLI.
-- **spells.py**: Contains the implementation of all the commands.
+- **setup.py**: Used to install the CLI with pip and use it with the command `cast`.
 
 ## Usage
 
