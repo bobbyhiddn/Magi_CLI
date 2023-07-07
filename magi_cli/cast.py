@@ -52,29 +52,6 @@ def execute_spell_file(spell_file):
     for line in lines:
         os.system(line.strip())
 
-# @click.command()
-# @click.argument('spell_file', required=True)
-# def cast(spell_file):
-#     """Executes the commands in a .spell file."""
-
-#     # Assuming .spell files are stored in .tome directory
-#     tome_dir = ".tome"
-#     spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
-    
-#     # Check if the file exists
-#     if not os.path.exists(spell_file_path):
-#         click.echo(f"Could not find {spell_file}.spell in .tome directory.")
-#         return
-
-#     # Open and read the file
-#     with open(spell_file_path, 'r') as file:
-#         lines = file.readlines()
-
-#     # Loop through the lines in the file, and execute each as a command
-#     for line in lines:
-#         # You might want to do some error checking here to make sure the command is valid
-#         os.system(line.strip())
-
 
 @click.command()
 def necromancy():
