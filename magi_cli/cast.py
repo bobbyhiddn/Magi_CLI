@@ -258,7 +258,6 @@ cli.add_command(enchant)
 cli.add_command(spellcraft)
 cli.add_command(unseen_servant)
 cli.add_command(ponder)
-cli.add_command(cast)  
 
 # Add commands with aliases
 cli.add_command(fireball, name='fb')

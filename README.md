@@ -1,4 +1,7 @@
-# Magi CLI: A Wizard-Themed Command Line Tool 
+
+
+# Magi CLI: A Wizard-Themed Command Line Tool
+![logo](MAGI_Keys.png)
 
 Magi CLI is a fun, wizard-themed command line interface (CLI) that combines utility and fantasy aesthetics. The goal of this tool is to make interacting with your operating system feel magical and efficient.
 
@@ -31,19 +34,13 @@ Magi CLI can be run without prefacing each command with 'python magi_cli.py'. Th
 pip install .
 ```
 
- Just enter the spell name and the required arguments to use it.
+Just enter the spell name and the required arguments to use it.
 
 Example:
 
 ```bash
 cast fireball test.py
 ```
-
 ## Future Extensions
 
-Additional spells, file type support, and features can be added to the CLI based on user needs and preferences.
-
----
-
-Please note that some spells (Spellcraft, Unseen_Servant) are not fully defined yet and their implementation details are subject to change.
-
+Additional spells, file type support, and features can be added to the CLI based on user needs and preferences. Please note that some spells (Spellcraft, Unseen_Servant) are not fully defined yet and their implementation details are subject to change.
