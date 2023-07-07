@@ -1,2 +1,2 @@
 
-print(Hello Wizard!)
+print("Hello Wizard!")
