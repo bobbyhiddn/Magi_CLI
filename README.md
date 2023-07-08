@@ -16,19 +16,19 @@ Magi CLI is forged in Python, channeling the enigmatic power of the Click librar
 
 2. **Necromancy**: Conjure a '.graveyard' domain to preserve the spirits of deleted files. This command creates a '.graveyard' directory, which serves as a storage location for deleted files.
 
-3. **Divine**: Gaze into the astral plane to unveil the contents and attributes of a file or directory. This command lists the contents of a directory with detailed information, such as file size, permissions, and last modified date[2].
+3. **Divine**: Gaze into the astral plane to unveil the contents and attributes of a file or directory. This command lists the contents of a directory with detailed information, such as file size, permissions, and last modified date.
 
-4. **Raise_Dead**: Commune with the spirits in the '.graveyard' and restore them to the material plane if desired. This command lists all files in the '.graveyard' directory and allows you to restore them if desired[2].
+4. **Raise_Dead**: Commune with the spirits in the '.graveyard' and restore them to the material plane if desired. This command lists all files in the '.graveyard' directory and allows you to restore them if desired.
 
-5. **Enchant**: Transform a file into a different file type. (Details to be defined)
+5. **Enchant**: Transform a file into a different file type. (WIP)
 
 6. **Cast**: Invoke a file based on its extension. Supports Python and Bash incantations. This command executes a file based on its extension, such as Python scripts and Bash scripts.
 
-7. **Prestidigitation**: Generate content in a file or seek answers from an AI oracle like GPT-4. (Details to be defined)
+7. **Spellcraft**: Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory.
 
-8. **Spellcraft**: Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory.
+8. **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
 
-9. **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule.
+9.  **Arcane_Intellect**: Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API, but the option to use local LLMs is available. I will default it to an LLM called WizardCoder, which is a GPT-4 model trained on code. This command will allow you to generate code to .spell files or ask questions about code or files. (WIP)
 
 ### Grimoire Structure
 
@@ -58,6 +58,7 @@ Additional spells, file type support, and arcane features can be added to the CL
 #### Spell Ideas
 
 **Astral Realm** - This would be a remote repository that stores your spells from your tome directory 
+
 ##### Spell Improvements
 
 - Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. Also, remove the need to specify the path to the '.tome' realm if no path is provided.
