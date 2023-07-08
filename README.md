@@ -1,46 +1,65 @@
+## Magi CLI: An Esoteric Command Line Tool for the Alchemists
 
+![banner](MAGI_Keys.png)
 
-# Magi CLI: A Wizard-Themed Command Line Tool
-![logo](MAGI_Keys.png)
+Magi CLI Logo
 
-Magi CLI is a fun, wizard-themed command line interface (CLI) that combines utility and fantasy aesthetics. The goal of this tool is to make interacting with your operating system feel magical and efficient.
+Embrace the arcane with Magi CLI, an alchemy-inspired command line interface (CLI) that fuses the mystical arts with practical utility. Unravel the secrets of the cosmos and command your operating system with the wisdom of the ancient alchemists.
 
-## Overview
+### Overview
 
-Magi CLI is implemented in Python, using the Click library. It provides a variety of 'spells' (commands) that perform operations on the filesystem, manage files, and automate tasks. It is designed to be extendable, allowing for the addition of new spells as needed.
+Magi CLI is forged in Python, channeling the enigmatic power of the Click library. It offers an array of spells (commands) that manipulate the filesystem, manage files, and automate tasks. Designed to be extendable, Magi CLI allows you to add new spells as your knowledge of the hidden arts expands.
 
-## Spells (Commands)
+### Spells (Commands)
 
-- **Fireball**: Recursively delete a file or directory, then move it into a '.graveyard' directory.
-- **Necromancy**: Create a '.graveyard' directory to store deleted files.
-- **Divine**: Display all contents and attributes of a file or directory.
-- **Raise_Dead**: List all files in the '.graveyard' directory and restores them if desired.
-- **Enchant**: Convert a file to a different file type. (Details to be defined)
-- **Cast**: Execute a file based on its extension. Supports Python and Bash scripts.
-- **Prestidigitation**: Generate content in a file or provide a response using an AI model like GPT-4. (Details to be defined)
-- **Spellcraft**: Macro multiple commands and register them in '.spell' files. The commands are saved in the order they were input and can be executed in sequence.
-- **Unseen_Servant**: Schedule spells to be cast at regular intervals. Can run any '.spell' file on a schedule.
+1. **Fireball**: Transmute a file or directory into ashes, sending it to the '.graveyard' realm. This command deletes a file or directory and moves it to the '.graveyard' directory, ensuring that the deleted files are preserved in case they need to be restored later.
 
-## File Structure
+2. **Necromancy**: Conjure a '.graveyard' domain to preserve the spirits of deleted files. This command creates a '.graveyard' directory, which serves as a storage location for deleted files.
 
-- **cast.py**: Main script that adds all the commands and starts the CLI.
-- **setup.py**: Used to install the CLI with pip and use it with the command `cast`.
+3. **Divine**: Gaze into the astral plane to unveil the contents and attributes of a file or directory. This command lists the contents of a directory with detailed information, such as file size, permissions, and last modified date[2].
 
-## Usage
+4. **Raise_Dead**: Commune with the spirits in the '.graveyard' and restore them to the material plane if desired. This command lists all files in the '.graveyard' directory and allows you to restore them if desired[2].
 
-Magi CLI can be run without prefacing each command with 'python magi_cli.py'. This is done by installing it with pip.
+5. **Enchant**: Transform a file into a different file type. (Details to be defined)
 
-```bash
+6. **Cast**: Invoke a file based on its extension. Supports Python and Bash incantations. This command executes a file based on its extension, such as Python scripts and Bash scripts.
+
+7. **Prestidigitation**: Generate content in a file or seek answers from an AI oracle like GPT-4. (Details to be defined)
+
+8. **Spellcraft**: Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory.
+
+9. **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule.
+
+### Grimoire Structure
+
+- **cast.py**: The main scroll that binds all the spells and conjures the CLI.
+- **setup.py**: A ritual to install the CLI with pip and invoke it with the command `cast`.
+
+### Usage
+
+To wield the Magi CLI without invoking 'python magi_cli.py', install it with pip:
+
+```
 pip install .
 ```
 
-Just enter the spell name and the required arguments to use it.
+Simply utter the spell name and the required incantations to harness its power:
 
 Example:
 
-```bash
+```
 cast fireball test.py
 ```
-## Future Extensions
 
-Additional spells, file type support, and features can be added to the CLI based on user needs and preferences. Please note that some spells (Spellcraft, Unseen_Servant) are not fully defined yet and their implementation details are subject to change.
+### Future Enchantments
+
+Additional spells, file type support, and arcane features can be added to the CLI based on the desires and whims of its practitioners. Beware that some spells (Spellcraft, Unseen_Servant) are not fully defined yet, and their arcane secrets may change.
+
+#### Spell Ideas
+
+**Astral Realm** - This would be a remote repository that stores your spells from your tome directory 
+##### Spell Improvements
+
+- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. Also, remove the need to specify the path to the '.tome' realm if no path is provided.
+
+Embark on your mystical journey with Magi CLI and master the arcane arts of file and directory manipulation, as well as the creation and execution of custom spells (macros). The Click library empowers you to define and cast spells with ease, providing an engaging and esoteric experience.

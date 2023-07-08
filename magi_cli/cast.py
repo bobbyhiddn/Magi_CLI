@@ -15,16 +15,19 @@ from click import Context # type: ignore
 @click.argument('input', nargs=-1)
 def cast(input):
     input = " ".join(input)  # join input arguments into one string if there are multiple
+
     if input in cli.list_commands(ctx=None):
-        cli() # type: ignore
+        cli()  # type: ignore
     elif os.path.isfile(input):  # Check if file exists
         if input.endswith(".py"):  # If it's a Python script
             execute_python_file(input)  # execute the Python script
-        else:  # if it's not a Python script, it might be a 'spell'
+        elif input.endswith(".spell"):  # If it's a spell file
             execute_spell_file(input.replace(".spell", ""))  # execute the spell
+        else:  # if it's not a Python script or a spell file
+            cli()  # type: ignore
     else:
-        cli() # type: ignore
-
+        cli()  # type: ignore
+        
 @click.group()
 @click.pass_context
 def cli(ctx):
@@ -37,10 +40,17 @@ def execute_python_file(filename):
 
 def execute_spell_file(spell_file):
     tome_dir = ".tome"
+
+    # Check if the spell_file starts with the tome_dir
     if not spell_file.startswith(tome_dir):
         spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
     else:
         spell_file_path = f"{spell_file}.spell"
+
+    # Check if the spell_file exists in the tome_dir
+    if not os.path.exists(spell_file_path):
+        # Try to find the spell_file without the tome_dir prefix
+        spell_file_path = os.path.join(tome_dir, f"{spell_file.replace('.tome/', '')}.spell")
 
     if not os.path.exists(spell_file_path):
         click.echo(f"Could not find {spell_file}.spell in .tome directory.")
@@ -51,7 +61,6 @@ def execute_spell_file(spell_file):
 
     for line in lines:
         os.system(line.strip())
-
 
 @click.command()
 def necromancy():
