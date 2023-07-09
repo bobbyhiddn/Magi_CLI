@@ -35,7 +35,7 @@ def send_message(message_log):
 def main():
     # Initialize the conversation history with a message from the chatbot
     message_log = [
-        {"role": "system", "content": "You are a helpful assistant."}
+        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems."}
     ]
 
     # Set a flag to keep track of whether this is the first request in the conversation
@@ -53,7 +53,7 @@ def main():
 
             # Add the chatbot's response to the conversation history and print it to the console
             message_log.append({"role": "assistant", "content": response})
-            print(f"AI assistant: {response}")
+            print(f"mAGI: {response}")
 
             # Set the flag to False so that this branch is not executed again
             first_request = False
@@ -63,7 +63,7 @@ def main():
 
             # If the user types "quit", end the loop and print a goodbye message
             if user_input.lower() == "quit":
-                print("Goodbye!")
+                print("I await your summons.")
                 break
 
             message_log.append({"role": "user", "content": user_input})
@@ -73,7 +73,7 @@ def main():
 
             # Add the chatbot's response to the conversation history and print it to the console
             message_log.append({"role": "assistant", "content": response})
-            print(f"AI assistant: {response}")
+            print(f"mAGI: {response}")
 
 
 # Call the main function if this file is executed directly (not imported as a module)

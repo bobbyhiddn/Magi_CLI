@@ -10,6 +10,17 @@ from datetime import datetime
 import glob
 from pathlib import Path
 from click import Context # type: ignore
+import openai
+from dotenv import load_dotenv
+
+# Load the API key from the .env file
+load_dotenv()
+api_key = os.getenv("OPENAI_API_KEY")
+
+# Set the API key for the OpenAI package through .env file or API key path
+# You can also set it by using export OPENAI_API_KEY=<your-api-key> in the terminal.
+openai.api_key = api_key
+# openai.api_key_path = ".api"
 
 @click.command()
 @click.argument('input', nargs=-1)
@@ -200,7 +211,66 @@ def enchant(spell_file):
 @click.command()
 def arcane_intellect():
     """Call upon the arcane intellect of an artificial intelligence to answer your questions."""
-    # Implementation of arcane_intellect...
+    # Initialize the conversation history with a message from the chatbot
+    message_log = [
+        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems."}
+    ]
+
+    # Set a flag to keep track of whether this is the first request in the conversation
+    first_request = True
+
+    # Start a loop that runs until the user types "quit"
+    while True:
+        if first_request:
+            # If this is the first request, get the user's input and add it to the conversation history
+            user_input = input("You: ")
+            message_log.append({"role": "user", "content": user_input})
+
+            # Send the conversation history to the chatbot and get its response
+            response = send_message(message_log)
+
+            # Add the chatbot's response to the conversation history and print it to the console
+            message_log.append({"role": "assistant", "content": response})
+            print(f"mAGI: {response}")
+
+            # Set the flag to False so that this branch is not executed again
+            first_request = False
+        else:
+            # If this is not the first request, get the user's input and add it to the conversation history
+            user_input = input("You: ")
+
+            # If the user types "quit", end the loop and print a goodbye message
+            if user_input.lower() == "quit":
+                print("I await your summons.")
+                break
+
+            message_log.append({"role": "user", "content": user_input})
+
+            # Send the conversation history to the chatbot and get its response
+            response = send_message(message_log)
+
+            # Add the chatbot's response to the conversation history and print it to the console
+            message_log.append({"role": "assistant", "content": response})
+            print(f"mAGI: {response}")
+
+# Function to send a message to the OpenAI chatbot model and return its response
+def send_message(message_log):
+    # Use OpenAI's ChatCompletion API to get the chatbot's response
+    response = openai.ChatCompletion.create(
+        model="gpt-4",  # The name of the OpenAI chatbot model to use
+        messages=message_log,   # The conversation history up to this point, as a list of dictionaries
+        max_tokens=3800,        # The maximum number of tokens (words or subwords) in the generated response
+        stop=None,              # The stopping sequence for the generated response, if any (not used here)
+        temperature=0.7,        # The "creativity" of the generated response (higher temperature = more creative)
+    )
+
+    # Find the first response from the chatbot that has text in it (some responses may not have text)
+    for choice in response.choices:
+        if "text" in choice:
+            return choice.text
+
+    # If no response with text is found, return the first response's content (which may be empty)
+    return response.choices[0].message.content
 
 @click.command()
 @click.argument('file', required=False)
@@ -267,6 +337,7 @@ cli.add_command(enchant)
 cli.add_command(spellcraft)
 cli.add_command(unseen_servant)
 cli.add_command(ponder)
+cli.add_command(arcane_intellect)
 
 # Add commands with aliases
 cli.add_command(fireball, name='fb')
@@ -277,6 +348,7 @@ cli.add_command(enchant, name='enc')
 cli.add_command(spellcraft, name='spc')
 cli.add_command(unseen_servant, name='uss')
 cli.add_command(ponder, name='pn')
+cli.add_command(arcane_intellect, name='ai')
 
 if __name__ == "__main__":
-    cli() # type: ignore
+    cast() # type: ignore
