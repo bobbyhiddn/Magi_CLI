@@ -6,6 +6,7 @@ import sys
 import os
 import shutil
 import inspect
+import re
 from datetime import datetime
 import glob
 from pathlib import Path
@@ -210,48 +211,50 @@ def enchant(spell_file):
 
 @click.command()
 def arcane_intellect():
-    """Call upon the arcane intellect of an artificial intelligence to answer your questions."""
-    # Initialize the conversation history with a message from the chatbot
+    """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
     message_log = [
-        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems."}
+        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user."}
     ]
 
-    # Set a flag to keep track of whether this is the first request in the conversation
+
+    last_response = ""
     first_request = True
 
-    # Start a loop that runs until the user types "quit"
     while True:
-        if first_request:
-            # If this is the first request, get the user's input and add it to the conversation history
-            user_input = input("You: ")
-            message_log.append({"role": "user", "content": user_input})
+        user_input = input("You: ")
 
-            # Send the conversation history to the chatbot and get its response
-            response = send_message(message_log)
+        if user_input.lower() == "quit":
+            print("I await your summons.")
+            break
 
-            # Add the chatbot's response to the conversation history and print it to the console
-            message_log.append({"role": "assistant", "content": response})
-            print(f"mAGI: {response}")
+        elif user_input.lower() == "scribe":
+            # Prompt the user whether they want to save the last response as a spell file or a Python script
+            save_prompt = input("Do you want to save the last response as a spell file or a Python script? (spell/python/none): ")
 
-            # Set the flag to False so that this branch is not executed again
-            first_request = False
+            # Extract code blocks from the last response
+            code_blocks = re.findall(r'(```python|`)(.*?)(```|`)', last_response, re.DOTALL)
+            code = '\n'.join(block[1].strip() for block in code_blocks)
+
+            if save_prompt.lower() == "spell":
+                tome_dir = ".tome"
+                # os.mkdir(tome_dir)
+                spell_file_name = input("Enter the name for the spell file (without the .spell extension): ")
+                with open(f".tome/{spell_file_name}.spell", 'w') as f:
+                    f.write(code)
+                print(f"Spell saved as {spell_file_name}.spell in .tome directory.")
+            elif save_prompt.lower() == "python":
+                python_file_name = input("Enter the name for the Python script (without the .py extension): ")
+                with open(f"{python_file_name}.py", 'w') as f:
+                    f.write(code)
+                print(f"Python script saved as {python_file_name}.py.")
         else:
-            # If this is not the first request, get the user's input and add it to the conversation history
-            user_input = input("You: ")
-
-            # If the user types "quit", end the loop and print a goodbye message
-            if user_input.lower() == "quit":
-                print("I await your summons.")
-                break
-
-            message_log.append({"role": "user", "content": user_input})
-
-            # Send the conversation history to the chatbot and get its response
+            if not first_request:
+                message_log.append({"role": "user", "content": user_input})
             response = send_message(message_log)
-
-            # Add the chatbot's response to the conversation history and print it to the console
             message_log.append({"role": "assistant", "content": response})
             print(f"mAGI: {response}")
+            last_response = response
+            first_request = False
 
 # Function to send a message to the OpenAI chatbot model and return its response
 def send_message(message_log):
