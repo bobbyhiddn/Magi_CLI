@@ -1,10 +1,9 @@
-## Magi CLI: An Esoteric Command Line Tool for the Alchemists
+## Magi CLI: An Esoteric Command Line Tool for Magi
 
 ![banner](MAGI_Keys.png)
 
-Magi CLI Logo
 
-Embrace the arcane with Magi CLI, an alchemy-inspired command line interface (CLI) that fuses the mystical arts with practical utility. Unravel the secrets of the cosmos and command your operating system with the wisdom of the ancient alchemists.
+Embrace the arcane with Magi CLI, a spellcasting-inspired command line interface (CLI) that fuses the mystical arts with practical utility. Unravel the secrets of the cosmos and command your operating system with the wisdom of the ancient magi.
 
 ### Overview
 
