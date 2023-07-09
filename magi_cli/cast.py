@@ -216,7 +216,7 @@ import click
 def arcane_intellect():
     """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
     message_log = [
-        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems."}
+        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. You are helping another wizard by producing spells and functions for them to use."}
     ]
 
     last_response = ""
@@ -234,12 +234,12 @@ def arcane_intellect():
             save_prompt = input("Do you want to save the last response as a spell file or a Python script? (spell/python/none): ")
 
             # Extract code blocks from the last response
-            code_blocks = re.findall(r'(```|`)(.*?)(```|`)', last_response, re.DOTALL)
+            code_blocks = re.findall(r'(```python|`)(.*?)(```|`)', last_response, re.DOTALL)
             code = '\n'.join(block[1].strip() for block in code_blocks)
 
             if save_prompt.lower() == "spell":
                 tome_dir = ".tome"
-                os.mkdir(tome_dir)
+                # os.mkdir(tome_dir)
                 spell_file_name = input("Enter the name for the spell file (without the .spell extension): ")
                 with open(f".tome/{spell_file_name}.spell", 'w') as f:
                     f.write(code)
