@@ -3,7 +3,7 @@
 ![banner](MAGI_Keys.png)
 
 
-Embrace the arcane with Magi CLI, a spellcasting-inspired command line interface (CLI) that fuses the mystical arts with practical utility. Unravel the secrets of the cosmos and command your operating system with the wisdom of the ancient magi.
+Embrace the arcane with Magi CLI, a spellcasting-inspired command line interface (CLI) tool that fuses the mystical arts with practical utility. Unravel the secrets of the cosmos and command your operating system with the wisdom of the ancient magi.
 
 ### Overview
 
@@ -13,7 +13,7 @@ Magi CLI is forged in Python, channeling the enigmatic power of the Click librar
 
 1. **Fireball**: Transmute a file or directory into ashes, sending it to the '.graveyard' realm. This command deletes a file or directory and moves it to the '.graveyard' directory, ensuring that the deleted files are preserved in case they need to be restored later.
 
-2. **Necromancy**: Conjure a '.graveyard' domain to preserve the spirits of deleted files. This command creates a '.graveyard' directory, which serves as a storage location for deleted files.
+2. **Necromancy**: Conjure a '.graveyard' domain to preserve the spirits of deleted files. This command creates a '.graveyard' directory, which serves as a storage location for deleted files. (I want to add more functionality to this command)
 
 3. **Divine**: Gaze into the astral plane to unveil the contents and attributes of a file or directory. This command lists the contents of a directory with detailed information, such as file size, permissions, and last modified date.
 
@@ -28,6 +28,8 @@ Magi CLI is forged in Python, channeling the enigmatic power of the Click librar
 8. **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
 
 9.  **Arcane_Intellect**: Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API, but the option to use local LLMs is available. I will default it to an LLM called WizardCoder, which is a GPT-4 model trained on code. This command will allow you to generate code to .spell files or ask questions about code or files. (WIP)
+
+10. **Exile** - Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely. (WIP)
 
 ### Grimoire Structure
 
@@ -61,8 +63,6 @@ Additional spells, file type support, and arcane features can be added to the CL
 #### Spell Improvements
 
 - Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. Also, remove the need to specify the path to the '.tome' realm if no path is provided.
-
-Embark on your mystical journey with Magi CLI and master the arcane arts of file and directory manipulation, as well as the creation and execution of custom spells (macros). The Click library empowers you to define and cast spells with ease, providing an engaging and esoteric experience.
 
 #### General Improvements
 

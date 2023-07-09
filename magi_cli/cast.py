@@ -7,6 +7,7 @@ import os
 import shutil
 import inspect
 import re
+import fnmatch
 from datetime import datetime
 import glob
 from pathlib import Path
@@ -116,22 +117,28 @@ def fireball(path):
         click.echo(f"Your fireball fizzles... The target at {path} does not exist. Even in the arcane arts, one cannot destroy what is already absent.")
 
 @click.command()
-@click.argument('path', required=False)
-def divine(path):
-    """List the directory contents with detailed information."""
-    if not path:
-        path = os.getcwd()  # Set the current directory if no path is specified
-
-    if os.path.exists(path):
-        click.echo(f"You cast your senses into the ether, seeking knowledge of the realm at {path}...\n")
-        for file in os.listdir(path):
-            file_path = os.path.join(path, file)
+@click.argument('search_term', required=False)
+def divine(search_term):
+    """List the directory contents with detailed information, or find a file anywhere below the root directory, searching through child directories, and echo its path."""
+    if search_term:
+        click.echo(f"You cast your senses into the ether, seeking knowledge of the realm...\n")
+        for root, dirs, files in os.walk('.'):  # Start search from the root directory
+            for file in files:
+                if fnmatch.fnmatch(file, f'*{search_term}*'):  # If the file name contains the search term
+                    file_path = os.path.join(root, file)
+                    file_size = os.path.getsize(file_path)
+                    file_permissions = oct(os.stat(file_path).st_mode)[-3:]
+                    file_modified = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d %H:%M:%S')
+                    click.echo(f"{file_path}\tSize: {file_size} bytes\tPermissions: {file_permissions}\tLast Modified: {file_modified}")
+    else:
+        # If no search term was supplied, the function behaves as before
+        click.echo(f"You cast your senses into the ether, seeking knowledge of the realm...\n")
+        for file in os.listdir("."):
+            file_path = os.path.join(".", file)
             file_size = os.path.getsize(file_path)
             file_permissions = oct(os.stat(file_path).st_mode)[-3:]
             file_modified = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d %H:%M:%S')
             click.echo(f"{file}\tSize: {file_size} bytes\tPermissions: {file_permissions}\tLast Modified: {file_modified}")
-    else:
-        click.echo(f"Your divine senses find nothing at {path}. It seems to be a realm yet unformed.")
 
 @click.command()
 @click.argument('spirit', required=False)
@@ -330,6 +337,30 @@ def ponder(file):
         else:
             click.echo("No magics were found in your orb.")
 
+@click.command()
+@click.argument('spell_file', required=True)
+def exile(spell_file):
+    '''Banish a spell to the /tmp directory in a .exile folder. If no /tmp directory exists, place it in a C:\temp directory.'''
+    # Check if /tmp exists
+    if os.path.exists("/tmp"):
+        exile_dir_unix = "/tmp/.exile"
+        if not os.path.exists(exile_dir_unix):
+            os.mkdir(exile_dir_unix)
+        shutil.move(spell_file, os.path.join(exile_dir_unix, os.path.basename(spell_file)))
+        click.echo(f"Spell {spell_file} has been banished to the /tmp directory in a .exile folder.")
+    else:
+        exile_dir_win = "C:\\temp\\.exile"
+        if not os.path.exists(exile_dir_win):
+            os.mkdir(exile_dir_win)
+        shutil.move(spell_file, os.path.join(exile_dir_win, os.path.basename(spell_file)))
+        click.echo(f"Spell {spell_file} has been banished to the C:\\temp directory in a .exile folder.")
+
+    # if os.path.exists(spell_file):
+    # tmp_dir = "/tmp/.exile"
+    # if not os.path.exists(tmp_dir):
+    #     os.mkdir(tmp_dir)
+    # shutil.move(spell_file, os.path.join(tmp_dir, os.path.basename(spell_file)))
+    # click.echo(f"Spell {spell_file} has been banished to the /tmp directory in a .exile folder.")
 
 
 cli.add_command(fireball)
@@ -341,6 +372,7 @@ cli.add_command(spellcraft)
 cli.add_command(unseen_servant)
 cli.add_command(ponder)
 cli.add_command(arcane_intellect)
+cli.add_command(exile)
 
 # Add commands with aliases
 cli.add_command(fireball, name='fb')
@@ -352,6 +384,7 @@ cli.add_command(spellcraft, name='spc')
 cli.add_command(unseen_servant, name='uss')
 cli.add_command(ponder, name='pn')
 cli.add_command(arcane_intellect, name='ai')
+cli.add_command(exile, name='ex')
 
 if __name__ == "__main__":
     cast() # type: ignore
