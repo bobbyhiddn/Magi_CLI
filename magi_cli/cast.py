@@ -209,9 +209,6 @@ def unseen_servant(spell_file):
 def enchant(spell_file):
     """Convert the file type of a file to another type."""
 
-import re
-import click
-
 @click.command()
 def arcane_intellect():
     """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
