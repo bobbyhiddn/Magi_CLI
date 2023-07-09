@@ -59,8 +59,20 @@ Additional spells, file type support, and arcane features can be added to the CL
 
 **Astral Realm** - This would be a remote repository that stores your spells from your tome directory 
 
-##### Spell Improvements
+#### Spell Improvements
 
 - Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. Also, remove the need to specify the path to the '.tome' realm if no path is provided.
 
 Embark on your mystical journey with Magi CLI and master the arcane arts of file and directory manipulation, as well as the creation and execution of custom spells (macros). The Click library empowers you to define and cast spells with ease, providing an engaging and esoteric experience.
+
+#### General Improvements
+
+I would like to have more flavorful errors and responses to commands when using the CLI.
+
+### Future Plans
+
+1. **The Arcane Realm of Formulas** - This is both the public spell repo and the community forum for discussing the future of MAGI_CLI. 
+
+2. **MAGI_CLI Sanctum** - This is an IDE for MAGI_CLI that responds to casting spells and creating commands with animations and sound effects. It will have the same goal as the CLI itself, which is to both have fun functionality and to supercharge your terminal experience.
+
+3. **MAGI_CLI VSCode Extension** - This will be an extension that allows you to have the fun and functionality of MAGI_CLI in VSCode. I want to incorporate the animations and sound effects from the Sanctum into this extension.

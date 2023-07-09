@@ -216,8 +216,9 @@ import click
 def arcane_intellect():
     """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
     message_log = [
-        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. You are helping another wizard by producing spells and functions for them to use."}
+        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user."}
     ]
+
 
     last_response = ""
     first_request = True
