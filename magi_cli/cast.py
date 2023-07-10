@@ -16,6 +16,7 @@ import openai
 from dotenv import load_dotenv
 
 # Load the API key from the .env file
+# This can also be done by setting the OPENAI_API_KEY environment variable manually.
 load_dotenv()
 api_key = os.getenv("OPENAI_API_KEY")
 
@@ -220,12 +221,11 @@ def enchant(spell_file):
 def arcane_intellect():
     """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
     message_log = [
-        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user."}
+        {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
 
-
     last_response = ""
-    first_request = True
+    first_request = False
 
     while True:
         user_input = input("You: ")
@@ -235,33 +235,62 @@ def arcane_intellect():
             break
 
         elif user_input.lower() == "scribe":
-            # Prompt the user whether they want to save the last response as a spell file or a Python script
-            save_prompt = input("Do you want to save the last response as a spell file or a Python script? (spell/python/none): ")
-
-            # Extract code blocks from the last response
-            code_blocks = re.findall(r'(```python|`)(.*?)(```|`)', last_response, re.DOTALL)
-            code = '\n'.join(block[1].strip() for block in code_blocks)
+            # Prompt the user whether they want to save the last response as a spell file, bash file, Python script, or just copy the last message
+            save_prompt = input("Do you want to save the last response as a spell file, bash file, Python script, or just copy the last message? (spell/bash/python/copy/none): ")
 
             if save_prompt.lower() == "spell":
-                tome_dir = ".tome"
-                # os.mkdir(tome_dir)
+                # Save as spell file
+                code_blocks = re.findall(r'(```bash|`)(.*?)(```|`)', last_response, re.DOTALL)
+                code = '\n'.join(block[1].strip() for block in code_blocks)
                 spell_file_name = input("Enter the name for the spell file (without the .spell extension): ")
-                with open(f".tome/{spell_file_name}.spell", 'w') as f:
-                    f.write(code)
+                spell_file_path = f".tome/{spell_file_name}.spell"
+                with open(spell_file_path, 'w') as f:
+                    if code_blocks:
+                        f.write(code)
+                    else:
+                        f.write(last_response)
                 print(f"Spell saved as {spell_file_name}.spell in .tome directory.")
+
+            elif save_prompt.lower() == "bash":
+                # Save as bash file
+                code_blocks = re.findall(r'(```bash|`)(.*?)(```|`)', last_response, re.DOTALL)
+                code = '\n'.join(block[1].strip() for block in code_blocks)
+                bash_file_name = input("Enter the name for the Bash script (without the .sh extension): ")
+                with open(f"{bash_file_name}.sh", 'w') as f:
+                    if code_blocks:
+                        f.write(code)
+                    else:
+                        f.write(last_response)
+                print(f"Bash script saved as {bash_file_name}.sh.")
+
             elif save_prompt.lower() == "python":
+                # Save as Python script
+                code_blocks = re.findall(r'(```python|`)(.*?)(```|`)', last_response, re.DOTALL)
+                code = '\n'.join(block[1].strip() for block in code_blocks)
                 python_file_name = input("Enter the name for the Python script (without the .py extension): ")
                 with open(f"{python_file_name}.py", 'w') as f:
-                    f.write(code)
+                    if code_blocks:
+                        f.write(code)
+                    else:
+                        f.write(last_response)
                 print(f"Python script saved as {python_file_name}.py.")
+
+            elif save_prompt.lower() == "copy":
+                # Copy the last message
+                code = last_response
+                message_file_name = input("Enter the name for the message file (without the .txt extension): ")
+                with open(f"{message_file_name}.txt", 'w') as f:
+                    f.write(code)
+                print(f"Message saved as {message_file_name}.txt.")
         else:
-            if not first_request:
-                message_log.append({"role": "user", "content": user_input})
+            message_log.append({"role": "user", "content": user_input})
             response = send_message(message_log)
             message_log.append({"role": "assistant", "content": response})
             print(f"mAGI: {response}")
             last_response = response
-            first_request = False
+
+
+
 
 # Function to send a message to the OpenAI chatbot model and return its response
 def send_message(message_log):
