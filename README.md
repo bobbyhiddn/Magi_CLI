@@ -1,4 +1,4 @@
-## Magi CLI: An Esoteric Command Line Tool
+al ## Magi CLI: An Esoteric Command Line Tool
 
 ![banner](MAGI_Keys.png)
 
@@ -70,7 +70,7 @@ I would like to have more flavorful errors and responses to commands when using 
 
 ### Future Plans
 
-1. **The Arcane Realm of Formulas** - This is both the public spell repo and the community forum for discussing the future of MAGI_CLI. 
+1. **The Astral Realm of Formulas** - This is both the public spell repo and the community forum for discussing the future of MAGI_CLI. 
 
 2. **MAGI_CLI Sanctum** - This is an IDE for MAGI_CLI that responds to casting spells and creating commands with animations and sound effects. It will have the same goal as the CLI itself, which is to both have fun functionality and to supercharge your terminal experience.
 
