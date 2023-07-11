@@ -1,4 +1,4 @@
-## Magi CLI: An Esoteric Command Line Tool for Magi
+## Magi CLI: An Esoteric Command Line Tool
 
 ![banner](MAGI_Keys.png)
 
