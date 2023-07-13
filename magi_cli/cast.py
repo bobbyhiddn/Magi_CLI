@@ -8,16 +8,19 @@ import shutil
 import inspect
 import re
 import fnmatch
-from datetime import datetime
+import openai # type: ignore
 import glob
+import requests
+from PIL import Image, ImageDraw, ImageOps
+from io import BytesIO
+from datetime import datetime
 from pathlib import Path
 from click import Context # type: ignore
-import openai
-from dotenv import load_dotenv
+from dotenv import load_dotenv # type: ignore
 
-# Load the API key from the .env file
+# Load the Openai API key
 # This can also be done by setting the OPENAI_API_KEY environment variable manually.
-load_dotenv()
+# load_dotenv() # Uncomment this line if you want to load the API key from the .env file
 api_key = os.getenv("OPENAI_API_KEY")
 
 # Set the API key for the OpenAI package through .env file or API key path
@@ -25,29 +28,8 @@ api_key = os.getenv("OPENAI_API_KEY")
 openai.api_key = api_key
 # openai.api_key_path = ".api"
 
-@click.command()
-@click.argument('input', nargs=-1)
-def cast(input):
-    input = " ".join(input)  # join input arguments into one string if there are multiple
 
-    if input in cli.list_commands(ctx=None):
-        cli()  # type: ignore
-    elif os.path.isfile(input):  # Check if file exists
-        if input.endswith(".py"):  # If it's a Python script
-            execute_python_file(input)  # execute the Python script
-        elif input.endswith(".spell"):  # If it's a spell file
-            execute_spell_file(input.replace(".spell", ""))  # execute the spell
-        else:  # if it's not a Python script or a spell file
-            cli()  # type: ignore
-    else:
-        cli()  # type: ignore
-        
-@click.group()
-@click.pass_context
-def cli(ctx):
-    """A Python CLI for casting spells."""
-    pass
-
+# Non-click functions
 
 def execute_python_file(filename):
     subprocess.run([sys.executable, filename], check=True)
@@ -75,6 +57,71 @@ def execute_spell_file(spell_file):
 
     for line in lines:
         os.system(line.strip())
+
+# Function to send a message to the OpenAI chatbot model and return its response
+def send_message(message_log):
+    # Use OpenAI's ChatCompletion API to get the chatbot's response
+    response = openai.ChatCompletion.create(
+        model="gpt-4",  # The name of the OpenAI chatbot model to use
+        messages=message_log,   # The conversation history up to this point, as a list of dictionaries
+        max_tokens=3800,        # The maximum number of tokens (words or subwords) in the generated response
+        stop=None,              # The stopping sequence for the generated response, if any (not used here)
+        temperature=0.7,        # The "creativity" of the generated response (higher temperature = more creative)
+    )
+
+    # Find the first response from the chatbot that has text in it (some responses may not have text)
+    for choice in response.choices:
+        if "text" in choice:
+            return choice.text
+
+    # If no response with text is found, return the first response's content (which may be empty)
+    return response.choices[0].message.content
+
+# Function to generate an image using DALL-E API
+def generate_image(prompt):
+    response = openai.Image.create(
+        model="image-alpha-001",
+        prompt=prompt,
+        n=1,
+        size="256x256",
+        response_format="url"
+    )
+    image_url = response['data'][0]['url']
+    image_data = requests.get(image_url).content
+    image = Image.open(BytesIO(image_data))
+    return image
+
+# Function to create a circular mask
+def create_circular_mask(image):
+    width, height = image.size
+    mask = Image.new('L', (width, height), 0)
+    draw = ImageDraw.Draw(mask)
+    draw.ellipse((0, 0, width, height), fill=255)
+    return mask
+
+
+@click.command()
+@click.argument('input', nargs=-1)
+def cast(input):
+    input = " ".join(input)  # join input arguments into one string if there are multiple
+
+    if input in cli.list_commands(ctx=None):
+        cli()  # type: ignore
+    elif os.path.isfile(input):  # Check if file exists
+        if input.endswith(".py"):  # If it's a Python script
+            execute_python_file(input)  # execute the Python script
+        elif input.endswith(".spell"):  # If it's a spell file
+            execute_spell_file(input.replace(".spell", ""))  # execute the spell
+        else:  # if it's not a Python script or a spell file
+            cli()  # type: ignore
+    else:
+        cli()  # type: ignore
+        
+@click.group()
+@click.pass_context
+def cli(ctx):
+    """A Python CLI for casting spells."""
+    pass
 
 @click.command()
 def necromancy():
@@ -289,28 +336,6 @@ def arcane_intellect():
             print(f"mAGI: {response}")
             last_response = response
 
-
-
-
-# Function to send a message to the OpenAI chatbot model and return its response
-def send_message(message_log):
-    # Use OpenAI's ChatCompletion API to get the chatbot's response
-    response = openai.ChatCompletion.create(
-        model="gpt-4",  # The name of the OpenAI chatbot model to use
-        messages=message_log,   # The conversation history up to this point, as a list of dictionaries
-        max_tokens=3800,        # The maximum number of tokens (words or subwords) in the generated response
-        stop=None,              # The stopping sequence for the generated response, if any (not used here)
-        temperature=0.7,        # The "creativity" of the generated response (higher temperature = more creative)
-    )
-
-    # Find the first response from the chatbot that has text in it (some responses may not have text)
-    for choice in response.choices:
-        if "text" in choice:
-            return choice.text
-
-    # If no response with text is found, return the first response's content (which may be empty)
-    return response.choices[0].message.content
-
 @click.command()
 @click.argument('file', required=False)
 def ponder(file):
@@ -391,6 +416,57 @@ def exile(spell_file):
     # shutil.move(spell_file, os.path.join(tmp_dir, os.path.basename(spell_file)))
     # click.echo(f"Spell {spell_file} has been banished to the /tmp directory in a .exile folder.")
 
+@click.command()
+@click.argument('bash_file', required=True)
+def runecraft(bash_file):
+    # Example usage
+    prompt = "Runic magic, single large rune, alchemical circle, magi, pixel art, runework, dungeon stone, gemstone, modern design, minimal color, central sigil"
+    generated_image = generate_image(prompt)
+
+    # Apply circular mask
+    mask = create_circular_mask(generated_image)
+    circular_image = ImageOps.fit(generated_image, mask.size, centering=(0.5, 0.5))
+    circular_image.putalpha(mask)
+
+    # Save the generated image as a PNG
+    image_file = "generated_image.png"
+    circular_image.save(image_file, format="PNG")
+
+    # Get the image size to set the window size
+    image_width, image_height = circular_image.size
+
+    gui_file_name = bash_file.rsplit('.', 1)[0] + '_gui.py'
+    code = f'''
+import subprocess
+from kivy.app import App
+from kivy.uix.behaviors import ButtonBehavior
+from kivy.uix.image import Image as KivyImage
+from kivy.core.window import Window
+
+class ImageButton(ButtonBehavior, KivyImage):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.source = "{image_file}"
+
+    def on_release(self):
+        subprocess.run(["bash", "{bash_file}"])
+
+class MyApp(App):
+    def build(self):
+        self.title = 'My App'
+        return ImageButton()
+
+if __name__ == '__main__':
+    Window.size = ({image_width}, {image_height})  # Set window size to match the image size
+    MyApp().run()
+'''
+    os.makedirs('.runes', exist_ok=True)
+    with open(f'.runes/{gui_file_name}', 'w') as f:
+        f.write(code)
+
+    # Now run the new file
+    subprocess.run(["python", f'.runes/{gui_file_name}'])
+
 
 cli.add_command(fireball)
 cli.add_command(necromancy)
@@ -402,6 +478,7 @@ cli.add_command(unseen_servant)
 cli.add_command(ponder)
 cli.add_command(arcane_intellect)
 cli.add_command(exile)
+cli.add_command(runecraft)
 
 # Add commands with aliases
 cli.add_command(fireball, name='fb')
@@ -414,6 +491,7 @@ cli.add_command(unseen_servant, name='uss')
 cli.add_command(ponder, name='pn')
 cli.add_command(arcane_intellect, name='ai')
 cli.add_command(exile, name='ex')
+cli.add_command(runecraft, name='rc')
 
 if __name__ == "__main__":
     cast() # type: ignore
