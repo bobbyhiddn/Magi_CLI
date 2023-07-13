@@ -444,8 +444,7 @@ def runecraft(file_path):
     # Define a dictionary that maps file extensions to commands
     extension_to_command = {
         '.sh': 'bash',
-        '.py': 'python',
-        '.bat': 'cmd /c'
+        '.py': 'python'
     }
 
     # Get the command for the input file's extension
@@ -457,6 +456,14 @@ def runecraft(file_path):
         return
 
     gui_file_name = base_filename.rsplit('.', 1)[0] + '_gui.py'
+    image_file = base_filename.rsplit('.', 1)[0] + '_image.png'
+
+    # Create a new directory for the rune
+    rune_dir = f".runes/{base_filename.rsplit('.', 1)[0]}"
+    os.makedirs(rune_dir, exist_ok=True)
+
+    # Save the generated image as a PNG in the rune directory
+    circular_image.save(os.path.join(rune_dir, image_file), format="PNG")
 
     code = f'''
 import subprocess
@@ -483,13 +490,15 @@ if __name__ == '__main__':
     Window.size = ({image_width}, {image_height})
     MyApp().run()
 '''
-    os.makedirs('.runes', exist_ok=True)
-    with open(f'.runes/{gui_file_name}', 'w') as f:
-        f.write(code)
-    print("The rune is complete. You may now cast it.")
-    # Now run the new file
-    subprocess.run(["python", f'.runes/{gui_file_name}'])
 
+    # Write the Kivy script to a file in the rune directory
+    with open(os.path.join(rune_dir, gui_file_name), 'w') as f:
+        f.write(code)
+
+    print("The rune is complete. You may now cast it.")
+
+    # Now run the new file
+    subprocess.run(["python", os.path.join(rune_dir, gui_file_name)])
 
 cli.add_command(fireball)
 cli.add_command(necromancy)
