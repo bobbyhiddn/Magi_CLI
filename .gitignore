@@ -1,2 +1,8 @@
 .env
 ./magi_cli/.env
+build
+.runes
+.tome
+.orb
+.scratch
+magi_cli.zip
