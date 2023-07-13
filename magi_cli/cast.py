@@ -419,10 +419,13 @@ def exile(spell_file):
 @click.command()
 @click.argument('bash_file', required=True)
 def runecraft(bash_file):
+    '''Generate a GUI for a Bash script in thhe form of an enchanted rune.'''
+    print("Gathering the mana...")
     # Example usage
-    prompt = "Runic magic, single large rune, alchemical circle, magi, pixel art, runework, dungeon stone, gemstone, modern design, minimal color, central sigil"
+    prompt = "Runic magic, single large rune, alchemical circle, arcane symbol, pixel art, runework, greyish brown dungeon stone, gemstone, modern design, minimal color, central sigil, avoid black and white"
     generated_image = generate_image(prompt)
 
+    print("Applying the enchantment...")
     # Apply circular mask
     mask = create_circular_mask(generated_image)
     circular_image = ImageOps.fit(generated_image, mask.size, centering=(0.5, 0.5))
@@ -431,11 +434,12 @@ def runecraft(bash_file):
     # Save the generated image as a PNG
     image_file = "generated_image.png"
     circular_image.save(image_file, format="PNG")
-
+    print("Engaging the arcane energies...")
     # Get the image size to set the window size
     image_width, image_height = circular_image.size
-
-    gui_file_name = bash_file.rsplit('.', 1)[0] + '_gui.py'
+    print("Engraving the rune from aether to stone...")
+    base_bash_filename = os.path.basename(bash_file)
+    gui_file_name = base_bash_filename.rsplit('.', 1)[0] + '_gui.py'
     code = f'''
 import subprocess
 from kivy.app import App
@@ -463,7 +467,7 @@ if __name__ == '__main__':
     os.makedirs('.runes', exist_ok=True)
     with open(f'.runes/{gui_file_name}', 'w') as f:
         f.write(code)
-
+    print("The rune is complete. You may now cast it.")
     # Now run the new file
     subprocess.run(["python", f'.runes/{gui_file_name}'])
 
