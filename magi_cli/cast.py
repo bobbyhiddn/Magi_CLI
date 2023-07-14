@@ -446,7 +446,8 @@ def runecraft(file_path):
     # Define a dictionary that maps file extensions to commands
     extension_to_command = {
         '.sh': 'bash',
-        '.py': 'python'
+        '.py': 'python',
+        '.spell': 'cast'
     }
 
     # Get the command for the input file's extension
@@ -468,8 +469,8 @@ def runecraft(file_path):
 import sys
 import subprocess
 import signal
-from PyQt5.QtGui import QPixmap, QRegion
-from PyQt5.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QPushButton
+from PyQt5.QtGui import QPixmap, QColor
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QApplication, QLabel, QVBoxLayout, QWidget, QPushButton
 from PyQt5.QtCore import Qt
 
 # Ignore SIGINT
@@ -482,6 +483,16 @@ class ImageButton(QLabel):
         self.command = command
         self.file_path = file_path
         self.moved = False
+
+        # Create a QGraphicsDropShadowEffect
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)  # Adjust the blur radius
+        shadow.setXOffset(5)  # Adjust the horizontal offset
+        shadow.setYOffset(5)  # Adjust the vertical offset
+        shadow.setColor(QColor("black"))
+
+        # Apply the shadow effect to the image_button
+        self.setGraphicsEffect(shadow)
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
@@ -560,20 +571,12 @@ window.resize(new_size)
 image_pos = window.rect().center() - image_button.rect().center()
 image_button.move(image_pos)
 
-# Create a QRegion with a circular shape, centered at the middle of the window, with the new window size as the diameter
-mask_diameter = window.width() # use the width of the window for the mask diameter
-mask = QRegion(window.width() // 2 - mask_diameter // 2, window.height() // 2 - mask_diameter // 2, mask_diameter, mask_diameter, QRegion.Ellipse)
-
-# Set the mask on the window
-window.setMask(mask)
-
 # Move the close button to the top left
 close_button.move(110, 0)
 
 window.show()
 
 sys.exit(app.exec_())
-
 
 '''
 
@@ -584,7 +587,8 @@ sys.exit(app.exec_())
     print("The rune is complete. You may now cast it.")
 
     # Now run the new file
-    subprocess.Popen(["python", os.path.join(rune_dir, gui_file_name)])
+    subprocess.Popen(["python", os.path.join(rune_dir, gui_file_name)], start_new_session=True)
+
 
 
 cli.add_command(fireball)
