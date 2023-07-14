@@ -465,11 +465,15 @@ def runecraft(file_path):
     circular_image.save(os.path.join(rune_dir, image_file), format="PNG")
 
     code = f'''
-import subprocess
 import sys
+import subprocess
+import signal
 from PyQt5.QtGui import QPixmap, QRegion
-from PyQt5.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import QApplication, QLabel, QVBoxLayout, QWidget, QPushButton
 from PyQt5.QtCore import Qt
+
+# Ignore SIGINT
+signal.signal(signal.SIGINT, signal.SIG_IGN)
 
 class ImageButton(QLabel):
     def __init__(self, image_path, command, file_path, *args, **kwargs):
@@ -477,14 +481,20 @@ class ImageButton(QLabel):
         self.pixmap = QPixmap(image_path)
         self.command = command
         self.file_path = file_path
+        self.moved = False
 
     def mousePressEvent(self, event):
-        if event.button() == Qt.LeftButton:
-            subprocess.run([self.command, self.file_path])
         super().mousePressEvent(event)
 
     def mouseMoveEvent(self, event):
+        self.moved = True
         super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton and not self.moved:
+            subprocess.run([self.command, self.file_path])
+        self.moved = False
+        super().mouseReleaseEvent(event)
 
 class DraggableWindow(QWidget):
     def __init__(self, *args, **kwargs):
@@ -502,6 +512,7 @@ class DraggableWindow(QWidget):
 
     def mouseReleaseEvent(self, event):
         self.mpos = None
+        self.findChild(ImageButton).moved = False
 
 app = QApplication(sys.argv)
 
@@ -510,33 +521,59 @@ window.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
 window.setAttribute(Qt.WA_TranslucentBackground)
 
 layout = QVBoxLayout(window)
+layout.setAlignment(Qt.AlignCenter) # Center alignment
 
 image_button = ImageButton(r"{image_full_path}", "{command}", "{file_path}")
 layout.addWidget(image_button)
 
-# Get the smaller dimension of the image
-size = min(image_button.pixmap.width(), image_button.pixmap.height())
+# Add a close button
+close_button = QPushButton("X", window)
+close_button.clicked.connect(app.quit)
+close_button.setStyleSheet(\"""
+    QPushButton {{
+        color: teal; 
+        background-color: black; 
+        border-radius: 10px; 
+        font-size: 12px; 
+        padding: 2px;
+    }}
+    QPushButton:hover {{
+        background-color: #ff7f7f;
+    }}
+\""")
+# Set button size
+close_button.setFixedSize(20, 20)
 
-# Set the window size to be a square based on the smaller image dimension
-window.setFixedSize(size, size)
+# Calculate the new size for the window and image by halving the current size
+new_size = window.size() * 0.25
 
-# Create a QRegion with a circular shape, centered at the middle of the window, with the window size as the diameter
-mask = QRegion(window.rect().center().x() - size//2, 
-               window.rect().center().y() - size//2, 
-               size, 
-               size, 
-               QRegion.Ellipse)
+# Scale the image to the new size while maintaining aspect ratio
+scaled_pixmap = image_button.pixmap.scaled(new_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
+# Set the scaled pixmap as the image button's pixmap
+image_button.setPixmap(scaled_pixmap)
+
+# Resize the window to the new size
+window.resize(new_size)
+
+# Calculate the position to center the image within the window
+image_pos = window.rect().center() - image_button.rect().center()
+image_button.move(image_pos)
+
+# Create a QRegion with a circular shape, centered at the middle of the window, with the new window size as the diameter
+mask_diameter = window.width() # use the width of the window for the mask diameter
+mask = QRegion(window.width() // 2 - mask_diameter // 2, window.height() // 2 - mask_diameter // 2, mask_diameter, mask_diameter, QRegion.Ellipse)
 
 # Set the mask on the window
 window.setMask(mask)
 
-# Scale the image to fit the window size while maintaining aspect ratio
-scaled_pixmap = image_button.pixmap.scaled(window.size(), Qt.KeepAspectRatio, Qt.SmoothTransformation)
-image_button.setPixmap(scaled_pixmap)
+# Move the close button to the top left
+close_button.move(110, 0)
 
 window.show()
 
 sys.exit(app.exec_())
+
 
 '''
 
@@ -547,7 +584,8 @@ sys.exit(app.exec_())
     print("The rune is complete. You may now cast it.")
 
     # Now run the new file
-    subprocess.run(["python", os.path.join(rune_dir, gui_file_name)])
+    subprocess.Popen(["python", os.path.join(rune_dir, gui_file_name)])
+
 
 cli.add_command(fireball)
 cli.add_command(necromancy)
