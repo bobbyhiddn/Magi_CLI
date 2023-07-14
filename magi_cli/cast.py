@@ -409,42 +409,45 @@ def exile(spell_file):
         shutil.move(spell_file, os.path.join(exile_dir_win, os.path.basename(spell_file)))
         click.echo(f"Spell {spell_file} has been banished to the C:\\temp directory in a .exile folder.")
 
-    # if os.path.exists(spell_file):
-    # tmp_dir = "/tmp/.exile"
-    # if not os.path.exists(tmp_dir):
-    #     os.mkdir(tmp_dir)
-    # shutil.move(spell_file, os.path.join(tmp_dir, os.path.basename(spell_file)))
-    # click.echo(f"Spell {spell_file} has been banished to the /tmp directory in a .exile folder.")
-
 @click.command()
 @click.argument('file_path', required=True)
 def runecraft(file_path):
-    '''Generate a GUI for a Bash script in thhe form of an enchanted rune.'''
+    '''Generate a GUI for a Bash script in the form of an enchanted rune.'''
     print("Gathering the mana...")
+    print("Applying the enchantment...")
+    print("Engaging the arcane energies...")
+    print("Engraving the rune from aether to stone...")
+    print("(This may take up to 15 seconds)")
+
     # Example usage
-    prompt = "Runic magic, single large rune, alchemical circle, arcane symbol, pixel art, runework, greyish dungeon stone, gemstone, modern design, minimal color, central sigil, avoid black and white"
+    prompt = "Rune magic, arcane symbol, runework, gemstone, central sigil, ancient arcane language, modern pixel video game style icon, engraved in the aether and onto stone, magical energy"
     generated_image = generate_image(prompt)
 
-    print("Applying the enchantment...")
     # Apply circular mask
     mask = create_circular_mask(generated_image)
     circular_image = ImageOps.fit(generated_image, mask.size, centering=(0.5, 0.5))
     circular_image.putalpha(mask)
 
-    # Save the generated image as a PNG
-    image_file = "generated_image.png"
-    circular_image.save(image_file, format="PNG")
-    print("Engaging the arcane energies...")
     # Get the image size to set the window size
     image_width, image_height = circular_image.size
-    print("Engraving the rune from aether to stone...")
     base_filename = os.path.basename(file_path)
     file_extension = os.path.splitext(base_filename)[1]
+
+    # Create a new directory for the rune
+    rune_dir = f".runes/{base_filename.rsplit('.', 1)[0]}"
+    os.makedirs(rune_dir, exist_ok=True)
+
+    # Save the generated image as a PNG
+    image_file = base_filename.rsplit('.', 1)[0] + '_image.png'
+    image_full_path = os.path.join(rune_dir, image_file)
+    circular_image.save(image_full_path, format="PNG")
+
 
     # Define a dictionary that maps file extensions to commands
     extension_to_command = {
         '.sh': 'bash',
-        '.py': 'python'
+        '.py': 'python',
+        '.spell': 'cast'
     }
 
     # Get the command for the input file's extension
@@ -458,47 +461,135 @@ def runecraft(file_path):
     gui_file_name = base_filename.rsplit('.', 1)[0] + '_gui.py'
     image_file = base_filename.rsplit('.', 1)[0] + '_image.png'
 
-    # Create a new directory for the rune
-    rune_dir = f".runes/{base_filename.rsplit('.', 1)[0]}"
-    os.makedirs(rune_dir, exist_ok=True)
 
     # Save the generated image as a PNG in the rune directory
     circular_image.save(os.path.join(rune_dir, image_file), format="PNG")
 
     code = f'''
+import sys
 import subprocess
+import signal
+from PyQt5.QtGui import QPixmap, QColor
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QApplication, QLabel, QVBoxLayout, QWidget, QPushButton
+from PyQt5.QtCore import Qt
 
-from kivy.app import App
-from kivy.uix.behaviors import ButtonBehavior
-from kivy.uix.image import Image as KivyImage
-from kivy.core.window import Window
+# Ignore SIGINT
+signal.signal(signal.SIGINT, signal.SIG_IGN)
 
-class ImageButton(ButtonBehavior, KivyImage):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.source = "{image_file}"
+class ImageButton(QLabel):
+    def __init__(self, image_path, command, file_path, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.pixmap = QPixmap(image_path)
+        self.command = command
+        self.file_path = file_path
+        self.moved = False
 
-    def on_release(self):
-        subprocess.run(["{command}", "{file_path}"])
+        # Create a QGraphicsDropShadowEffect
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)  # Adjust the blur radius
+        shadow.setXOffset(5)  # Adjust the horizontal offset
+        shadow.setYOffset(5)  # Adjust the vertical offset
+        shadow.setColor(QColor("black"))
 
-class MyApp(App):
-    def build(self):
-        self.title = 'My App'
-        return ImageButton()
+        # Apply the shadow effect to the image_button
+        self.setGraphicsEffect(shadow)
 
-if __name__ == '__main__':
-    Window.size = ({image_width}, {image_height})
-    MyApp().run()
+    def mousePressEvent(self, event):
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        self.moved = True
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton and not self.moved:
+            subprocess.run([self.command, self.file_path])
+        self.moved = False
+        super().mouseReleaseEvent(event)
+
+class DraggableWindow(QWidget):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.mpos = None
+
+    def mousePressEvent(self, event):
+        self.mpos = event.pos()
+
+    def mouseMoveEvent(self, event):
+        if self.mpos:
+            diff = event.pos() - self.mpos
+            new_pos = self.pos() + diff
+            self.move(new_pos)
+
+    def mouseReleaseEvent(self, event):
+        self.mpos = None
+        self.findChild(ImageButton).moved = False
+
+app = QApplication(sys.argv)
+
+window = DraggableWindow()
+window.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+window.setAttribute(Qt.WA_TranslucentBackground)
+
+layout = QVBoxLayout(window)
+layout.setAlignment(Qt.AlignCenter) # Center alignment
+
+image_button = ImageButton(r"{image_full_path}", "{command}", "{file_path}")
+layout.addWidget(image_button)
+
+# Add a close button
+close_button = QPushButton("X", window)
+close_button.clicked.connect(app.quit)
+close_button.setStyleSheet(\"""
+    QPushButton {{
+        color: teal; 
+        background-color: black; 
+        border-radius: 10px; 
+        font-size: 12px; 
+        padding: 2px;
+    }}
+    QPushButton:hover {{
+        background-color: #ff7f7f;
+    }}
+\""")
+# Set button size
+close_button.setFixedSize(20, 20)
+
+# Calculate the new size for the window and image by halving the current size
+new_size = window.size() * 0.25
+
+# Scale the image to the new size while maintaining aspect ratio
+scaled_pixmap = image_button.pixmap.scaled(new_size, Qt.KeepAspectRatio, Qt.SmoothTransformation)
+
+# Set the scaled pixmap as the image button's pixmap
+image_button.setPixmap(scaled_pixmap)
+
+# Resize the window to the new size
+window.resize(new_size)
+
+# Calculate the position to center the image within the window
+image_pos = window.rect().center() - image_button.rect().center()
+image_button.move(image_pos)
+
+# Move the close button to the top left
+close_button.move(110, 0)
+
+window.show()
+
+sys.exit(app.exec_())
+
 '''
 
-    # Write the Kivy script to a file in the rune directory
+    # Write the PyQt script to a file in the rune directory
     with open(os.path.join(rune_dir, gui_file_name), 'w') as f:
         f.write(code)
 
     print("The rune is complete. You may now cast it.")
 
     # Now run the new file
-    subprocess.run(["python", os.path.join(rune_dir, gui_file_name)])
+    subprocess.Popen(["python", os.path.join(rune_dir, gui_file_name)], start_new_session=True)
+
+
 
 cli.add_command(fireball)
 cli.add_command(necromancy)

@@ -27,13 +27,13 @@ Magi CLI is forged in Python, channeling the enigmatic power of the Click librar
 
 8. **Conjure**: Create a new file or directory. This command creates a new file or directory in the current directory. (WIP)
 
-9. **Runecraft**: Craft a rune through the power of sigaldry. Creates a button with kivy and DALL-E that can be used to cast a spell with a single press. (WIP) 
+9. **Runecraft**: Craft a rune through the power of sigaldry enchanted with a single spell. Creates a button GUI with PyQT5 that can be used to execute a spell, bash, or python file. The image for the rune is generated with DALL-E, so the OPENAI_API_KEY environment variable must be set. This might be my favorite spell. The purpose of this is to have an easy way to repeat a command or script in an efficient way without having to schedule it with Unseen_Servant or type out the command every time. The GUI is also independant from the terminal in that it won't interfere with your other commands, but the execution of the file is run from the terminal the GUI was created on and when that terminal is closed, it will shut down the GUI.
 
 10. **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
 
 11. **Arcane_Intellect**: Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API, but the option to use local LLMs is available. I will default it to an LLM called WizardCoder, which is a GPT-4 model trained on code. This command will allow you to generate code to .spell files or ask questions about code or files. (WIP)
 
-12. **Exile** - Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely. (WIP)
+12. **Exile** - Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
 
 ### Grimoire Structure
 
@@ -67,6 +67,8 @@ Additional spells, file type support, and arcane features can be added to the CL
 #### Spell Improvements
 
 - Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. Also, remove the need to specify the path to the '.tome' realm if no path is provided.
+
+- Runecraft: Add a flag that specifies whether the rune will always run from the directory you created it in(This is how it currently functions) or will execute the file in the directory you are currently in when you run the rune. This will allow you to create a rune in one directory and then use it in another directory without having to create a new rune and to the same effect. 
 
 #### General Improvements
 
