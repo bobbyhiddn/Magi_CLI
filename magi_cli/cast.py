@@ -31,6 +31,9 @@ openai.api_key = api_key
 
 # Non-click functions
 
+def execute_bash_file(filename):
+    subprocess.run(["bash", filename], check=True)
+
 def execute_python_file(filename):
     subprocess.run([sys.executable, filename], check=True)
 
