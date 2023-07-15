@@ -1,4 +1,5 @@
 from setuptools import setup, find_packages
+from setuptools import setup, find_packages
 
 setup(
     name="magi_cli",
@@ -6,6 +7,10 @@ setup(
     packages=find_packages(),  # Automatically find all packages
     install_requires=[
         "Click",
+        "openai",
+        "requests",
+        "Pillow",
+        "python-dotenv",
     ],
     entry_points={
         'console_scripts': [
