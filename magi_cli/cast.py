@@ -83,7 +83,7 @@ def execute_python_file(filename):
 
 def execute_spell_file(spell_file):
     tome_path = os.getenv("TOME_PATH")  # Get default .tome location from environment variable
-    spell_file_path = os.path.join(tome_path, spell_file)
+    spell_file_path = spell_file if '.tome' in spell_file else os.path.join(tome_path, spell_file)
 
     # Check if spell file has .spell extension, add if missing
     if not spell_file_path.endswith('.spell'):
@@ -91,8 +91,13 @@ def execute_spell_file(spell_file):
     
     # Check if the spell_file exists in the tome_path
     if not os.path.exists(spell_file_path):
-        click.echo(f"Could not find {spell_file}.spell in .tome directory.")
-        return
+        click.echo(f"Could not find {spell_file}.spell in .tome directory. Checking current directory for .tome directory...")
+        spell_file_path = os.path.join(".tome", spell_file)
+        if not os.path.exists(spell_file_path):
+            click.echo(f"Could not find {spell_file}.spell in current directory or .tome directory.")
+            return
+        elif not spell_file_path.endswith('.spell'):
+            spell_file_path += '.spell'
 
     with open(spell_file_path, 'r') as file:
         lines = file.readlines()
@@ -103,6 +108,7 @@ def execute_spell_file(spell_file):
             continue
         subprocess.run(stripped_line, shell=True)
 
+
 @click.command()
 @click.argument('input', nargs=-1)
 def cast(input):
@@ -112,13 +118,14 @@ def cast(input):
     if input in cli.commands:  # Check if input matches a registered command
         ctx = click.get_current_context()
         ctx.forward(cli.commands[input])  # Forward the input to the matched command
-    elif os.path.isfile(file_path):  # Check if file exists
-        if input.endswith(".py"):  # If it's a Python script
-            execute_python_file(file_path)  # execute the Python script
-        elif input.endswith(".spell"):  # If it's a spell file
-            execute_spell_file(input.replace(".spell", ""))  # execute the spell
-        elif input.endswith(".sh"):  # If it's a bash file
-            execute_bash_file(file_path)  # execute the bash file
+    elif os.path.isfile(file_path) or os.path.isfile(input):  # Check if file exists in TOME_PATH or directly
+        target_file = file_path if os.path.isfile(file_path) else input  # Use the file that exists
+        if target_file.endswith(".py"):  # If it's a Python script
+            execute_python_file(target_file)  # execute the Python script
+        elif target_file.endswith(".spell"):  # If it's a spell file
+            execute_spell_file(target_file.replace(".spell", ""))  # execute the spell
+        elif target_file.endswith(".sh"):  # If it's a bash file
+            execute_bash_file(target_file)  # execute the bash file
         else:  # if it's not a Python script or a spell file
             cli()  # type: ignore
     else:
