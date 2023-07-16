@@ -23,6 +23,9 @@ from dotenv import load_dotenv # type: ignore
 # load_dotenv() # Uncomment this line if you want to load the API key from the .env file
 api_key = os.getenv("OPENAI_API_KEY")
 
+# Load the defauit .tome directory path
+tome_path = os.getenv("TOME_PATH")
+
 # Set the API key for the OpenAI package through .env file or API key path
 # You can also set it by using export OPENAI_API_KEY=<your-api-key> in the terminal.
 openai.api_key = api_key
@@ -30,36 +33,6 @@ openai.api_key = api_key
 
 
 # Non-click functions
-
-def execute_bash_file(filename):
-    subprocess.run(["bash", filename], check=True)
-
-def execute_python_file(filename):
-    subprocess.run([sys.executable, filename], check=True)
-
-def execute_spell_file(spell_file):
-    tome_dir = ".tome"
-
-    # Check if the spell_file starts with the tome_dir
-    if not spell_file.startswith(tome_dir):
-        spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
-    else:
-        spell_file_path = f"{spell_file}.spell"
-
-    # Check if the spell_file exists in the tome_dir
-    if not os.path.exists(spell_file_path):
-        # Try to find the spell_file without the tome_dir prefix
-        spell_file_path = os.path.join(tome_dir, f"{spell_file.replace('.tome/', '')}.spell")
-
-    if not os.path.exists(spell_file_path):
-        click.echo(f"Could not find {spell_file}.spell in .tome directory.")
-        return
-
-    with open(spell_file_path, 'r') as file:
-        lines = file.readlines()
-
-    for line in lines:
-        os.system(line.strip())
 
 # Function to send a message to the OpenAI chatbot model and return its response
 def send_message(message_log):
@@ -102,24 +75,56 @@ def create_circular_mask(image):
     draw.ellipse((0, 0, width, height), fill=255)
     return mask
 
+def execute_bash_file(filename):
+    subprocess.run(["bash", filename], check=True)
+
+def execute_python_file(filename):
+    subprocess.run([sys.executable, filename], check=True)
+
+def execute_spell_file(spell_file):
+    tome_path = os.getenv("TOME_PATH")  # Get default .tome location from environment variable
+    spell_file_path = os.path.join(tome_path, spell_file)
+
+    # Check if spell file has .spell extension, add if missing
+    if not spell_file_path.endswith('.spell'):
+        spell_file_path += '.spell'
+    
+    # Check if the spell_file exists in the tome_path
+    if not os.path.exists(spell_file_path):
+        click.echo(f"Could not find {spell_file}.spell in .tome directory.")
+        return
+
+    with open(spell_file_path, 'r') as file:
+        lines = file.readlines()
+
+    for line in lines:
+        stripped_line = line.strip()
+        if stripped_line.startswith("#"):  # Ignore comments
+            continue
+        subprocess.run(stripped_line, shell=True)
 
 @click.command()
 @click.argument('input', nargs=-1)
 def cast(input):
     input = " ".join(input)  # join input arguments into one string if there are multiple
+    file_path = os.path.join(os.getenv("TOME_PATH"), input)
 
-    if input in cli.list_commands(ctx=None):
-        cli()  # type: ignore
-    elif os.path.isfile(input):  # Check if file exists
+    if input in cli.commands:  # Check if input matches a registered command
+        ctx = click.get_current_context()
+        ctx.forward(cli.commands[input])  # Forward the input to the matched command
+    elif os.path.isfile(file_path):  # Check if file exists
         if input.endswith(".py"):  # If it's a Python script
-            execute_python_file(input)  # execute the Python script
+            execute_python_file(file_path)  # execute the Python script
         elif input.endswith(".spell"):  # If it's a spell file
             execute_spell_file(input.replace(".spell", ""))  # execute the spell
+        elif input.endswith(".sh"):  # If it's a bash file
+            execute_bash_file(file_path)  # execute the bash file
         else:  # if it's not a Python script or a spell file
             cli()  # type: ignore
     else:
         cli()  # type: ignore
-        
+
+
 @click.group()
 @click.pass_context
 def cli(ctx):
@@ -220,7 +225,8 @@ def raise_dead(spirit=None):
 @click.argument('spell_file', required=True)
 def spellcraft(num_commands, spell_file):
     """Create a macro spell and store it in .tome."""
-    tome_dir = ".tome"
+    default_tome_dir = os.getenv("TOME_PATH")  # Get default .tome location from environment variable
+    tome_dir = default_tome_dir if default_tome_dir else ".tome"  # Use .tome in current directory if default location is not set
 
     # If .tome directory does not exist, create it
     if not os.path.exists(tome_dir):
@@ -255,6 +261,7 @@ def spellcraft(num_commands, spell_file):
             f.write(f" cast {command}\n")
 
     click.echo(f"Macro spell created and stored in {spell_file_path}")
+
 
 @click.command()
 @click.argument('spell_file', required=True)
