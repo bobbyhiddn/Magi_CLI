@@ -40,7 +40,7 @@ def send_message(message_log):
     response = openai.ChatCompletion.create(
         model="gpt-4",  # The name of the OpenAI chatbot model to use
         messages=message_log,   # The conversation history up to this point, as a list of dictionaries
-        max_tokens=3800,        # The maximum number of tokens (words or subwords) in the generated response
+        max_tokens=1500,        # The maximum number of tokens (words or subwords) in the generated response
         stop=None,              # The stopping sequence for the generated response, if any (not used here)
         temperature=0.7,        # The "creativity" of the generated response (higher temperature = more creative)
     )
@@ -113,11 +113,26 @@ def execute_spell_file(spell_file):
 @click.argument('input', nargs=-1)
 def cast(input):
     input = " ".join(input)  # join input arguments into one string if there are multiple
-    file_path = os.path.join(os.getenv("TOME_PATH"), input)
 
-    if input in cli.commands:  # Check if input matches a registered command
-        ctx = click.get_current_context()
-        ctx.forward(cli.commands[input])  # Forward the input to the matched command
+    # Get the tome_path, use the current directory's .tome if TOME_PATH is not set
+    tome_path = os.getenv("TOME_PATH", ".tome")
+
+    file_path = os.path.join(tome_path, input)
+
+    # If no input is provided, list all available commands and .spell files
+    if not input:
+        # Print all available commands
+        print("Available commands:")
+        for name, command in cli.commands.items(): # type: ignore
+            print(f"- {name}: {command.help}")
+
+        # Print all .spell files in TOME_PATH
+        print("\nAvailable spells recorded in your tome:")
+        for file in glob.glob(f"{tome_path}/*.spell"):
+            print(f"- {os.path.basename(file)}")
+
+    elif input in cli.commands:  # Check if input matches a registered command
+        cli()  # Invoke the matched command directly # type: ignore
     elif os.path.isfile(file_path) or os.path.isfile(input):  # Check if file exists in TOME_PATH or directly
         target_file = file_path if os.path.isfile(file_path) else input  # Use the file that exists
         if target_file.endswith(".py"):  # If it's a Python script
@@ -130,7 +145,6 @@ def cast(input):
             cli()  # type: ignore
     else:
         cli()  # type: ignore
-
 
 @click.group()
 @click.pass_context
@@ -227,48 +241,6 @@ def raise_dead(spirit=None):
             shutil.move(source_path, destination_path)
             click.echo(f"The spirit of {spirit} has been restored to this realm, now known as undead_{spirit}.")
 
-@click.command()
-@click.argument('num_commands', type=int, required=True)
-@click.argument('spell_file', required=True)
-def spellcraft(num_commands, spell_file):
-    """Create a macro spell and store it in .tome."""
-    default_tome_dir = os.getenv("TOME_PATH")  # Get default .tome location from environment variable
-    tome_dir = default_tome_dir if default_tome_dir else ".tome"  # Use .tome in current directory if default location is not set
-
-    # If .tome directory does not exist, create it
-    if not os.path.exists(tome_dir):
-        os.mkdir(tome_dir)
-
-    # Prompt the user for a description
-    description = click.prompt("Enter a description for the macro spell")
-
-    # Create a list to store the entered commands
-    entered_commands = []
-
-    # Gather all available command names
-    all_spells = [command.name for name, command in inspect.getmembers(sys.modules[__name__]) if isinstance(command, click.core.Command)]
-
-    # Prompt the user to enter the desired commands
-    for i in range(num_commands):
-        valid_command = False
-        while not valid_command:
-            entered_command = input(f"Enter command {i + 1}: ")
-            # Check if the entered command is valid
-            if entered_command.split()[0] in all_spells:
-                valid_command = True
-                entered_commands.append(entered_command)
-            else:
-                print(f"The command '{entered_command.split()[0]}' is not recognized. Please enter a valid command.")
-
-    # Write the description and entered commands to the specified spell_file in the .tome directory
-    spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
-    with open(spell_file_path, 'w') as f:
-        f.write(f"# Description: {description}\n\n")
-        for command in entered_commands:
-            f.write(f" cast {command}\n")
-
-    click.echo(f"Macro spell created and stored in {spell_file_path}")
-
 
 @click.command()
 @click.argument('spell_file', required=True)
@@ -282,11 +254,20 @@ def enchant(spell_file):
     """Convert the file type of a file to another type."""
 
 @click.command()
-def arcane_intellect():
+@click.argument('file_path', required=False)  # Adding file_path as an optional argument
+def aether_inquiry(file_path=None):
     """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
+
     message_log = [
         {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
+
+    # If a file path is provided, read the file and append its content to the message_log
+    if file_path:
+        with open(file_path, 'r') as file:
+            file_content = file.read()
+        message_log.append({"role": "user", "content": file_content})
+        print("You provided a file as offering to the aether. You may now ask your question regarding it.")
 
     last_response = ""
     first_request = False
@@ -348,6 +329,7 @@ def arcane_intellect():
                 print(f"Message saved as {message_file_name}.txt.")
         else:
             message_log.append({"role": "user", "content": user_input})
+            print("Querying the aether...")
             response = send_message(message_log)
             message_log.append({"role": "assistant", "content": response})
             print(f"mAGI: {response}")
@@ -410,8 +392,8 @@ def ponder(file):
 
 @click.command()
 @click.argument('spell_file', required=True)
-def exile(spell_file):
-    '''Banish a spell to the /tmp directory in a .exile folder. If no /tmp directory exists, place it in a C:\temp directory.'''
+def banish(spell_file):
+    '''Banish a spell to the /tmp directory in a .exile folder. If no /tmp directory exists, place it in a C:\\temp\.exile directory.'''
     # Check if /tmp exists
     if os.path.exists("/tmp"):
         exile_dir_unix = "/tmp/.exile"
@@ -425,6 +407,42 @@ def exile(spell_file):
             os.mkdir(exile_dir_win)
         shutil.move(spell_file, os.path.join(exile_dir_win, os.path.basename(spell_file)))
         click.echo(f"Spell {spell_file} has been banished to the C:\\temp directory in a .exile folder.")
+
+@click.command()
+@click.argument('num_commands', type=int, required=True)
+@click.argument('spell_file', required=True)
+def spellcraft(num_commands, spell_file):
+    """Create a macro spell and store it in .tome."""
+    default_tome_dir = os.getenv("TOME_PATH")  # Get default .tome location from environment variable
+    tome_dir = default_tome_dir if default_tome_dir else ".tome"  # Use .tome in current directory if default location is not set
+
+    if not os.getenv('TOME_PATH'):
+        os.environ['TOME_PATH'] = input('Please set your TOME_PATH environmental variable or Magi_CLI will default to a .tome folder in your local directory. Press enter to continue.')
+        pass
+
+    # If .tome directory does not exist, create it
+    if not os.path.exists(tome_dir):
+        os.mkdir(tome_dir)
+
+    # Prompt the user for a description
+    description = click.prompt("Enter a description for the macro spell")
+
+    # Create a list to store the entered commands
+    entered_commands = []
+
+    # Prompt the user to enter the desired commands
+    for i in range(num_commands):
+        entered_command = input(f"Enter command {i + 1}: ")
+        entered_commands.append(entered_command)
+
+    # Write the description and entered commands to the specified spell_file in the .tome directory
+    spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
+    with open(spell_file_path, 'w') as f:
+        f.write(f"# Description: {description}\n\n")
+        for command in entered_commands:
+            f.write(f"{command}\n")
+
+    click.echo(f"Macro spell created and stored in {spell_file_path}")
 
 @click.command()
 @click.argument('file_path', required=True)
@@ -616,8 +634,8 @@ cli.add_command(enchant)
 cli.add_command(spellcraft)
 cli.add_command(unseen_servant)
 cli.add_command(ponder)
-cli.add_command(arcane_intellect)
-cli.add_command(exile)
+cli.add_command(aether_inquiry)
+cli.add_command(banish)
 cli.add_command(runecraft)
 
 # Add commands with aliases
@@ -629,8 +647,8 @@ cli.add_command(enchant, name='enc')
 cli.add_command(spellcraft, name='spc')
 cli.add_command(unseen_servant, name='uss')
 cli.add_command(ponder, name='pn')
-cli.add_command(arcane_intellect, name='ai')
-cli.add_command(exile, name='ex')
+cli.add_command(aether_inquiry, name='ai')
+cli.add_command(banish, name='bn')
 cli.add_command(runecraft, name='rc')
 
 if __name__ == "__main__":
