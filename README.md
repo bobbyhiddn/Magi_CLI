@@ -71,9 +71,9 @@ Additional spells, file type support, and arcane features can be added to the CL
 
 #### Spell Improvements
 
-- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. Also, remove the need to specify the path to the '.tome' realm if no path is provided.
+- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. Add the ability to include non-spell commands in spellcraft for more powerful spells.
 
-- Runecraft: Add a flag that specifies whether the rune will always run from the directory you created it in(This is how it currently functions) or will execute the file in the directory you are currently in when you run the rune. This will allow you to create a rune in one directory and then use it in another directory without having to create a new rune and to the same effect. 
+- Runecraft: Implement a way to save runes to a tome directory and allow them to be executed from the CLI. Allow runes to be saved as .spell files. Something like that.
 
 #### General Improvements
 
