@@ -127,7 +127,7 @@ def cast(input):
             print(f"- {name}: {command.help}")
 
         # Print all .spell files in TOME_PATH
-        print("\nAvailable spells in your tome:")
+        print("\nAvailable spells recorded in your tome:")
         for file in glob.glob(f"{tome_path}/*.spell"):
             print(f"- {os.path.basename(file)}")
 
@@ -240,52 +240,6 @@ def raise_dead(spirit=None):
             destination_path = os.path.join(".", "undead_" + spirit)
             shutil.move(source_path, destination_path)
             click.echo(f"The spirit of {spirit} has been restored to this realm, now known as undead_{spirit}.")
-
-@click.command()
-@click.argument('num_commands', type=int, required=True)
-@click.argument('spell_file', required=True)
-def spellcraft(num_commands, spell_file):
-    """Create a macro spell and store it in .tome."""
-    default_tome_dir = os.getenv("TOME_PATH")  # Get default .tome location from environment variable
-    tome_dir = default_tome_dir if default_tome_dir else ".tome"  # Use .tome in current directory if default location is not set
-
-    if not os.getenv('TOME_PATH'):
-        os.environ['TOME_PATH'] = input('Please set your TOME_PATH environmental variable or Magi_CLI will default to a .tome folder in your local directory. Press enter to continue.')
-        pass
-
-    # If .tome directory does not exist, create it
-    if not os.path.exists(tome_dir):
-        os.mkdir(tome_dir)
-
-    # Prompt the user for a description
-    description = click.prompt("Enter a description for the macro spell")
-
-    # Create a list to store the entered commands
-    entered_commands = []
-
-    # Gather all available command names
-    all_spells = [command.name for name, command in inspect.getmembers(sys.modules[__name__]) if isinstance(command, click.core.Command)]
-
-    # Prompt the user to enter the desired commands
-    for i in range(num_commands):
-        valid_command = False
-        while not valid_command:
-            entered_command = input(f"Enter command {i + 1}: ")
-            # Check if the entered command is valid
-            if entered_command.split()[0] in all_spells:
-                valid_command = True
-                entered_commands.append(entered_command)
-            else:
-                print(f"The command '{entered_command.split()[0]}' is not recognized. Please enter a valid command.")
-
-    # Write the description and entered commands to the specified spell_file in the .tome directory
-    spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
-    with open(spell_file_path, 'w') as f:
-        f.write(f"# Description: {description}\n\n")
-        for command in entered_commands:
-            f.write(f" cast {command}\n")
-
-    click.echo(f"Macro spell created and stored in {spell_file_path}")
 
 
 @click.command()
@@ -453,6 +407,49 @@ def banish(spell_file):
             os.mkdir(exile_dir_win)
         shutil.move(spell_file, os.path.join(exile_dir_win, os.path.basename(spell_file)))
         click.echo(f"Spell {spell_file} has been banished to the C:\\temp directory in a .exile folder.")
+
+@click.command()
+@click.argument('num_commands', type=int, required=True)
+@click.argument('spell_file', required=True)
+@click.option('--include-nonspells', is_flag=True, default=False, help='Include non-spell commands like ls, touch, cat, etc.')
+def spellcraft(num_commands, spell_file, include_nonspells):
+    """Create a macro spell and store it in .tome."""
+    default_tome_dir = os.getenv("TOME_PATH")  # Get default .tome location from environment variable
+    tome_dir = default_tome_dir if default_tome_dir else ".tome"  # Use .tome in current directory if default location is not set
+
+    # If .tome directory does not exist, create it
+    if not os.path.exists(tome_dir):
+        os.mkdir(tome_dir)
+
+    # Prompt the user for a description
+    description = click.prompt("Enter a description for the macro spell")
+
+    # Create a list to store the entered commands
+    entered_commands = []
+
+    # Gather all available command names
+    all_spells = [command.name for name, command in inspect.getmembers(sys.modules[__name__]) if isinstance(command, click.core.Command)]
+
+    # Prompt the user to enter the desired commands
+    for i in range(num_commands):
+        valid_command = False
+        while not valid_command:
+            entered_command = input(f"Enter command {i + 1}: ")
+            # Check if the entered command is valid
+            if include_nonspells or entered_command.split()[0] in all_spells:
+                valid_command = True
+                entered_commands.append(entered_command)
+            else:
+                print(f"The command '{entered_command.split()[0]}' is not recognized. Please enter a valid command.")
+
+    # Write the description and entered commands to the specified spell_file in the .tome directory
+    spell_file_path = os.path.join(tome_dir, f"{spell_file}.spell")
+    with open(spell_file_path, 'w') as f:
+        f.write(f"# Description: {description}\n\n")
+        for command in entered_commands:
+            f.write(f" cast {command}\n")
+
+    click.echo(f"Macro spell created and stored in {spell_file_path}")
 
 @click.command()
 @click.argument('file_path', required=True)
