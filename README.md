@@ -7,9 +7,16 @@ Embrace the arcane with Magi CLI, a spellcasting-inspired command line interface
 
 ### Overview
 
-Magi CLI is forged in Python, channeling the enigmatic power of the Click library. It offers an array of spells (commands) that manipulate the filesystem, manage files, and automate tasks. Designed to be extendable, Magi CLI allows you to add new spells as your knowledge of the hidden arts expands.
+Magi CLI is forged in Python, channeling the enigmatic power of the Click library. It offers an array of spells (commands) that manipulate the filesystem, manage files, and automate tasks. Designed to be extendable, Magi CLI allows you to add new spells as your knowledge of the hidden arts expands. It was also designed to be platform agnostic, but it should be used with a bash terminal like Git Bash for best performance. 
 
-### Spells (Commands)
+
+### Cast
+
+This is the root command. It is the main entry point that binds all the other spells together and conjures the CLI. It is the first spell you should cast when using the CLI. It is also the spell that allows you to cast other spells. When you use `cast` it will display all available spells and .spell files in your tome. The .spell files will be listed from your default tome path set with the `TOME_PATH` variable or if that is not set, the .spell files in the .tome folder in your current directory will be listed. 
+
+Another goal for cast is to serve as a universal execution command. I despise having to use python or bash as prefixes to run a file, so I want to be able to execute most files with cast. Currently cast supports .py, .sh, and .spell files. I want to add support for .exe, .jar, and other files as well in the future.
+
+#### Spells (Commands)
 
 1. **Fireball**: Transmute a file or directory into ashes, sending it to the '.graveyard' realm. This command deletes a file or directory and moves it to the '.graveyard' directory, ensuring that the deleted files are preserved in case they need to be restored later.
 
@@ -21,19 +28,17 @@ Magi CLI is forged in Python, channeling the enigmatic power of the Click librar
 
 5. **Enchant**: Transform a file into a different file type. (WIP)
 
-6. **Cast**: Invoke a file based on its extension. Supports Python and Bash incantations. This command executes a file based on its extension, such as Python scripts and Bash scripts.
+6. **Spellcraft**: Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory.
 
-7. **Spellcraft**: Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory.
+7. **Conjure**: Create a new file or directory. This command creates a new file or directory in the current directory. (WIP)
 
-8. **Conjure**: Create a new file or directory. This command creates a new file or directory in the current directory. (WIP)
+8. **Runecraft**: Craft a rune through the power of sigaldry enchanted with a single spell. Creates a button GUI with PyQT5 that can be used to execute a spell, bash, or python file. The image for the rune is generated with DALL-E, so the OPENAI_API_KEY environment variable must be set. This might be my favorite spell. The purpose of this is to have an easy way to repeat a command or script in an efficient way without having to schedule it with Unseen_Servant or type out the command every time. The GUI is also independant from the terminal in that it won't interfere with your other commands, but the execution of the file is run from the terminal the GUI was created on and when that terminal is closed, it will shut down the GUI.
 
-9. **Runecraft**: Craft a rune through the power of sigaldry enchanted with a single spell. Creates a button GUI with PyQT5 that can be used to execute a spell, bash, or python file. The image for the rune is generated with DALL-E, so the OPENAI_API_KEY environment variable must be set. This might be my favorite spell. The purpose of this is to have an easy way to repeat a command or script in an efficient way without having to schedule it with Unseen_Servant or type out the command every time. The GUI is also independant from the terminal in that it won't interfere with your other commands, but the execution of the file is run from the terminal the GUI was created on and when that terminal is closed, it will shut down the GUI.
+9.  **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
 
-10. **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
+10. **Aether_Inquiry**: Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API. This command will allow you to generate code to .spell files or ask questions about code or files. If you give it a file argument, it will read the file provided and allow you to discuss it. If you don't provide a file, it will default to discussing code and will generate code for you to use in a .spell, .py, .bash, or .txt file by saying 'scribe' during the conversation.
 
-11. **Arcane_Intellect**: Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API, but the option to use local LLMs is available. I will default it to an LLM called WizardCoder, which is a GPT-4 model trained on code. This command will allow you to generate code to .spell files or ask questions about code or files. (WIP)
-
-12. **Exile** - Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
+11. **Exile** - Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
 
 ### Grimoire Structure
 
