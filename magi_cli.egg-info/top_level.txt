@@ -1,1 +1,2 @@
 magi_cli
+spells

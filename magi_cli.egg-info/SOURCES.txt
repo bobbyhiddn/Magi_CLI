@@ -10,3 +10,14 @@ magi_cli.egg-info/dependency_links.txt
 magi_cli.egg-info/entry_points.txt
 magi_cli.egg-info/requires.txt
 magi_cli.egg-info/top_level.txt
+spells/__init__.py
+spells/aether_inquiry.py
+spells/astral_realm.py
+spells/banish.py
+spells/divine.py
+spells/fireball.py
+spells/necromancy.py
+spells/ponder.py
+spells/raise_dead.py
+spells/runecraft.py
+spells/spellcraft.py
