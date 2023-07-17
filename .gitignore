@@ -1,6 +1,6 @@
 .env
 ./magi_cli/.env
-build
+./build
 .runes
 .tome
 .orb
