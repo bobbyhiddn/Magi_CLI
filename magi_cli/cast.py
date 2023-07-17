@@ -31,6 +31,9 @@ tome_path = os.getenv("TOME_PATH")
 openai.api_key = api_key
 # openai.api_key_path = ".api"
 
+if not os.getenv('TOME_PATH'):
+    os.environ['TOME_PATH'] = input('Please set your TOME_PATH environmental variable. ')
+
 
 # Non-click functions
 
@@ -116,8 +119,7 @@ def cast(input):
     file_path = os.path.join(os.getenv("TOME_PATH"), input)
 
     if input in cli.commands:  # Check if input matches a registered command
-        ctx = click.get_current_context()
-        ctx.forward(cli.commands[input])  # Forward the input to the matched command
+        cli()  # Invoke the matched command directly # type: ignore
     elif os.path.isfile(file_path) or os.path.isfile(input):  # Check if file exists in TOME_PATH or directly
         target_file = file_path if os.path.isfile(file_path) else input  # Use the file that exists
         if target_file.endswith(".py"):  # If it's a Python script
@@ -130,7 +132,6 @@ def cast(input):
             cli()  # type: ignore
     else:
         cli()  # type: ignore
-
 
 @click.group()
 @click.pass_context
@@ -284,6 +285,10 @@ def enchant(spell_file):
 @click.command()
 def arcane_intellect():
     """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
+
+    # if not os.getenv('OPENAI_API_KEY'):
+    #     os.environ['OPENAI_API_KEY'] = input('Mage, you must tune your mind to the aether in order to receive arcane advice. Please set your OPENAI_API_KEY environmental variable. ')
+
     message_log = [
         {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
@@ -410,7 +415,7 @@ def ponder(file):
 
 @click.command()
 @click.argument('spell_file', required=True)
-def exile(spell_file):
+def banish(spell_file):
     '''Banish a spell to the /tmp directory in a .exile folder. If no /tmp directory exists, place it in a C:\temp directory.'''
     # Check if /tmp exists
     if os.path.exists("/tmp"):
@@ -617,7 +622,7 @@ cli.add_command(spellcraft)
 cli.add_command(unseen_servant)
 cli.add_command(ponder)
 cli.add_command(arcane_intellect)
-cli.add_command(exile)
+cli.add_command(banish)
 cli.add_command(runecraft)
 
 # Add commands with aliases
@@ -630,7 +635,7 @@ cli.add_command(spellcraft, name='spc')
 cli.add_command(unseen_servant, name='uss')
 cli.add_command(ponder, name='pn')
 cli.add_command(arcane_intellect, name='ai')
-cli.add_command(exile, name='ex')
+cli.add_command(banish, name='bn')
 cli.add_command(runecraft, name='rc')
 
 if __name__ == "__main__":

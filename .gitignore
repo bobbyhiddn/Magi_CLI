@@ -6,4 +6,5 @@ build
 .orb
 .scratch
 .graveyard
+.dalle_test
 magi_cli.zip
