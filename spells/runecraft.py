@@ -5,8 +5,9 @@ from PIL import Image, ImageDraw, ImageOps
 from io import BytesIO
 import requests
 import openai
+import pkg_resources
 
-DEFAULT_IMAGE_PATH = "spells/Rune.png"
+DEFAULT_IMAGE_PATH = pkg_resources.resource_filename(__name__, 'Rune.png') 
 
 # Function to generate an image using DALL-E API
 def generate_image(prompt):

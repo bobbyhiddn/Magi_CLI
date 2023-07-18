@@ -1,2 +1,0 @@
-magi_cli
-spells
