@@ -5,19 +5,26 @@ from PIL import Image, ImageDraw, ImageOps
 from io import BytesIO
 import requests
 import openai
+import pkg_resources
+
+DEFAULT_IMAGE_PATH = pkg_resources.resource_filename(__name__, 'Rune.png') 
 
 # Function to generate an image using DALL-E API
 def generate_image(prompt):
-    response = openai.Image.create(
-        model="image-alpha-001",
-        prompt=prompt,
-        n=1,
-        size="256x256",
-        response_format="url"
-    )
-    image_url = response['data'][0]['url']
-    image_data = requests.get(image_url).content
-    image = Image.open(BytesIO(image_data))
+    if 'OPENAI_API_KEY' in os.environ:
+        response = openai.Image.create(
+            model="image-alpha-001",
+            prompt=prompt,
+            n=1,
+            size="256x256",
+            response_format="url"
+        )
+        image_url = response['data'][0]['url']
+        image_data = requests.get(image_url).content
+        image = Image.open(BytesIO(image_data))
+    else:
+        # Load the default image if the OPENAI_API_KEY environment variable is not set
+        image = Image.open(DEFAULT_IMAGE_PATH)
     return image
 
 # Function to create a circular mask
@@ -46,6 +53,9 @@ def runecraft(file_path):
     mask = create_circular_mask(generated_image)
     circular_image = ImageOps.fit(generated_image, mask.size, centering=(0.5, 0.5))
     circular_image.putalpha(mask)
+
+    # Convert the image to RGBA mode
+    circular_image = circular_image.convert('RGBA')
 
     # Get the image size to set the window size
     image_width, image_height = circular_image.size
@@ -207,4 +217,7 @@ sys.exit(app.exec_())
 
     # Now run the new file
     subprocess.Popen(["python", os.path.join(rune_dir, gui_file_name)], start_new_session=True)
+
+if __name__ == '__main__':
+    runecraft()
 
