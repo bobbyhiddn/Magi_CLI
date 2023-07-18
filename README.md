@@ -7,8 +7,9 @@ Embrace the arcane with Magi CLI, a spellcasting-inspired command line interface
 
 ### Overview
 
-Magi CLI is forged in Python, channeling the enigmatic power of the Click library. It offers an array of spells (commands) that manipulate the filesystem, manage files, and automate tasks. Designed to be extendable, Magi CLI allows you to add new spells as your knowledge of the hidden arts expands. It was also designed to be platform agnostic, but it should be used with a bash terminal like Git Bash for best performance. 
+Magi CLI is forged in Python, channeling the enigmatic power of the Click library. It offers an array of spells (commands) that manipulate the filesystem, manage files, and automate tasks. Designed to be extendable, Magi CLI allows you to add new spells as your knowledge of the hidden arts expands. It was also designed to be platform agnostic, but it should be used with a bash terminal like Git Bash for best performance. Use of Magi_CLI should empower the user, not remind them of the current in-sufficiently advanced software. Because remember Clarke's third law:
 
+****Any sufficiently advanced technology is indistinguishable from magic.****
 
 ### Cast
 
@@ -18,6 +19,18 @@ Another goal for cast is to serve as a universal execution command. I despise ha
 
 #### Spells (Commands)
 
+##### Tenets
+
+Commands are designed with a few things in mind:
+
+- Effectiveness - They need to work. Half functioning spells won't be included in a release version.
+- Flavorfulness - They need to feel like magic. They should work in a manner that does not require memorization besides magic words and a target unless a flavorful way to add more features can be devised.
+- Modular - They need to fit into Magi_CLI in a fully functional way. If you can't both cast it with `cast spell target` or `python path/to/spell.py target`, it is not acceptable. Each command should be both executable and castable as both file and command.
+- Innovative - A spell will not be accepted if it only performs a task that a UNIX command already performs. We're crafting spells here, not reworking old ground.
+- Fun! - They should be enjoyable to use! Keep the debug messages in theme, keep the soul of the project alive!
+
+##### Current Spells
+
 1. **Fireball**: Transmute a file or directory into ashes, sending it to the '.graveyard' realm. This command deletes a file or directory and moves it to the '.graveyard' directory, ensuring that the deleted files are preserved in case they need to be restored later.
 
 2. **Necromancy**: Conjure a '.graveyard' domain to preserve the spirits of deleted files. This command creates a '.graveyard' directory, which serves as a storage location for deleted files. (I want to add more functionality to this command)
@@ -26,19 +39,17 @@ Another goal for cast is to serve as a universal execution command. I despise ha
 
 4. **Raise_Dead**: Commune with the spirits in the '.graveyard' and restore them to the material plane if desired. This command lists all files in the '.graveyard' directory and allows you to restore them if desired.
 
-5. **Enchant**: Transform a file into a different file type. (WIP)
+5. **Spellcraft**: Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory.
 
-6. **Spellcraft**: Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory.
+6. **Runecraft**: Craft a rune through the power of sigaldry enchanted with a single spell. Creates a button GUI with PyQT5 that can be used to execute a spell, bash, or python file. The image for the rune is generated with DALL-E, so the OPENAI_API_KEY environment variable must be set. This might be my favorite spell. The purpose of this is to have an easy way to repeat a command or script in an efficient way without having to schedule it with Unseen_Servant or type out the command every time. The GUI is also independant from the terminal in that it won't interfere with your other commands, but the execution of the file is run from the terminal the GUI was created on and when that terminal is closed, it will shut down the GUI.
 
-7. **Conjure**: Create a new file or directory. This command creates a new file or directory in the current directory. (WIP)
+7. **Aether_Inquiry**: Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API. This command will allow you to generate code to .spell files or ask questions about code or files. If you give it a file argument, it will read the file provided and allow you to discuss it. If you don't provide a file, it will default to discussing code and will generate code for you to use in a .spell, .py, .bash, or .txt file by saying 'scribe' during the conversation.
 
-8. **Runecraft**: Craft a rune through the power of sigaldry enchanted with a single spell. Creates a button GUI with PyQT5 that can be used to execute a spell, bash, or python file. The image for the rune is generated with DALL-E, so the OPENAI_API_KEY environment variable must be set. This might be my favorite spell. The purpose of this is to have an easy way to repeat a command or script in an efficient way without having to schedule it with Unseen_Servant or type out the command every time. The GUI is also independant from the terminal in that it won't interfere with your other commands, but the execution of the file is run from the terminal the GUI was created on and when that terminal is closed, it will shut down the GUI.
+8. **Exile** - Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
 
-9.  **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
+##### Future Spells
 
-10. **Aether_Inquiry**: Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API. This command will allow you to generate code to .spell files or ask questions about code or files. If you give it a file argument, it will read the file provided and allow you to discuss it. If you don't provide a file, it will default to discussing code and will generate code for you to use in a .spell, .py, .bash, or .txt file by saying 'scribe' during the conversation.
-
-11. **Exile** - Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
+1. **Unseen_Servant**: Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
 
 ### Grimoire Structure
 
@@ -71,13 +82,17 @@ Additional spells, file type support, and arcane features can be added to the CL
 
 #### Spell Improvements
 
-- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. Add the ability to include non-spell commands in spellcraft for more powerful spells.
+- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. I want spellcraft to be a versatile tool that can be used to accomplish more than just basic tasks without having to go too far into specifics on the users side. I'd like to eventually design a 'recording' system that can remember your next few commands.
 
 - Runecraft: Implement a way to save runes to a tome directory and allow them to be executed from the CLI. Allow runes to be saved as .spell files. Something like that.
 
+- Astral_Realm: We need to figure out if flask is all we need backend wise.
+
 #### General Improvements
 
-I would like to have more flavorful errors and responses to commands when using the CLI.
+- I would like to have more flavorful errors and responses to commands when using the CLI.
+- I need to find a better way to include aliases
+- I need to figure out if click is the best library to move forward with.
 
 ### Future Plans
 
