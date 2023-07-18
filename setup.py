@@ -11,6 +11,8 @@ setup(
         "requests",
         "Pillow",
         "python-dotenv",
+        "gitpython",
+        "flask"
     ],
     entry_points={
         'console_scripts': [

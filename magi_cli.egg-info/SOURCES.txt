@@ -1,7 +1,5 @@
 README.md
 setup.py
-Magi_CLI/__init__.py
-Magi_CLI/cast.py
 magi_cli/__init__.py
 magi_cli/cast.py
 magi_cli.egg-info/PKG-INFO
