@@ -39,6 +39,25 @@ def create_circular_mask(image):
 @click.argument('file_path', required=True)
 def runecraft(file_path):
     '''Generate a GUI for a Bash script in the form of an enchanted rune.'''
+    # Get the image size to set the window size
+    base_filename = os.path.basename(file_path)
+    file_extension = os.path.splitext(base_filename)[1]
+
+    # Define a dictionary that maps file extensions to commands
+    extension_to_command = {
+        '.sh': 'bash',
+        '.py': 'python',
+        '.spell': 'cast'
+    }
+
+    # Get the command for the input file's extension
+    command = extension_to_command.get(file_extension, '')
+
+    # Handle the case where the file extension is not supported
+    if not command:
+        print(f"File extension '{file_extension}' is not supported.")
+        return
+
     print("Gathering the mana...")
     print("Applying the enchantment...")
     print("Engaging the arcane energies...")
@@ -57,11 +76,6 @@ def runecraft(file_path):
     # Convert the image to RGBA mode
     circular_image = circular_image.convert('RGBA')
 
-    # Get the image size to set the window size
-    image_width, image_height = circular_image.size
-    base_filename = os.path.basename(file_path)
-    file_extension = os.path.splitext(base_filename)[1]
-
     # Create a new directory for the rune
     rune_dir = f".runes/{base_filename.rsplit('.', 1)[0]}"
     os.makedirs(rune_dir, exist_ok=True)
@@ -71,25 +85,8 @@ def runecraft(file_path):
     image_full_path = os.path.join(rune_dir, image_file)
     circular_image.save(image_full_path, format="PNG")
 
-
-    # Define a dictionary that maps file extensions to commands
-    extension_to_command = {
-        '.sh': 'bash',
-        '.py': 'python',
-        '.spell': 'cast'
-    }
-
-    # Get the command for the input file's extension
-    command = extension_to_command.get(file_extension, '')
-
-    # Handle the case where the file extension is not supported
-    if not command:
-        print(f"File extension '{file_extension}' is not supported.")
-        return
-
     gui_file_name = base_filename.rsplit('.', 1)[0] + '_gui.py'
     image_file = base_filename.rsplit('.', 1)[0] + '_image.png'
-
 
     # Save the generated image as a PNG in the rune directory
     circular_image.save(os.path.join(rune_dir, image_file), format="PNG")
@@ -206,8 +203,7 @@ close_button.move(110, 0)
 window.show()
 
 sys.exit(app.exec_())
-
-'''
+    '''
 
     # Write the PyQt script to a file in the rune directory
     with open(os.path.join(rune_dir, gui_file_name), 'w') as f:
@@ -220,4 +216,3 @@ sys.exit(app.exec_())
 
 if __name__ == '__main__':
     runecraft()
-
