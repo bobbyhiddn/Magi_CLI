@@ -21,7 +21,7 @@ from click import Context # type: ignore
 from dotenv import load_dotenv # type: ignore
 from git import Repo # type: ignore
 from flask import Flask, render_template_string, request # type: ignore
-from spells import commands_list
+from magi_cli.spells import commands_list
 
 # Load the Openai API key
 # This can also be done by setting the OPENAI_API_KEY environment variable manually.

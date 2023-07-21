@@ -102,3 +102,6 @@ def aether_inquiry(file_path=None):
             message_log.append({"role": "assistant", "content": response})
             print(f"mAGI: {response}")
             last_response = response
+
+if __name__ == '__main__':
+    aether_inquiry()
