@@ -16,7 +16,7 @@ def generate_image(prompt):
         model="image-alpha-001",
         prompt=prompt,
         n=1,
-        size="256x256",
+        # size="500x500",
         response_format="url"
     )
     image_url = response['data'][0]['url']
@@ -33,7 +33,7 @@ def astral_realm(repo_url):
     app.config['REPO_DIR'] = repo_dir
 
     # Generate the background image
-    img = generate_image("A hydromage's studyroom. Books about the topics a hydromage would study. Esoteric, arcane, stone, and glass. Semi-realistic, alchemist workshop.")
+    img = generate_image("An astromage's studyroom. Books about the topics an astromage would study. Esoteric, arcane, stone, and glass. Semi-realistic, alchemist workshop. In the style of dungeons and dragons.")
 
     # Save the image to the static folder of the Flask app
     img_path = os.path.join('static', 'background.png')
@@ -64,7 +64,7 @@ def index():
                     flex-direction: column;
                     height: 100vh;
                     margin: 0;
-                    background-image: url('/static/background.png');
+                    background-image: url('static/background.png');
                     background-size: 100% 100%;  /* Changed this line */
                     background-repeat: no-repeat; /* Added this line */
                 }
