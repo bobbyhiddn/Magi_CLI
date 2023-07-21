@@ -7,9 +7,9 @@ import requests
 import openai
 import pkg_resources
 
-# Update the DEFAULT_IMAGE_PATH to include the desired subdirectory
-artifacts_path = os.path.join('artifacts')
-DEFAULT_IMAGE_PATH = pkg_resources.resource_filename(__name__, os.path.join(artifacts_path, 'RUNE.png'))
+
+DEFAULT_IMAGE_PATH = pkg_resources.resource_filename('magi_cli.artifacts', 'Rune.png')
+
 
 # Function to generate an image using DALL-E API
 def generate_image(prompt):
