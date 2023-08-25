@@ -4,23 +4,9 @@ import click # type: ignore
 import subprocess
 import sys
 import os
-import shutil
-import inspect
-import re
-import shutil
-import tempfile
-import fnmatch
 import openai # type: ignore
 import glob
-import requests
-from PIL import Image, ImageDraw, ImageOps
-from io import BytesIO
-from datetime import datetime
-from pathlib import Path
-from click import Context # type: ignore
-from dotenv import load_dotenv # type: ignore
-from git import Repo # type: ignore
-from flask import Flask, render_template_string, request # type: ignore
+# from dotenv import load_dotenv # type: ignore # Uncomment this line if you want to load the API key from the .env file
 from magi_cli.spells import commands_list
 
 # Load the Openai API key
