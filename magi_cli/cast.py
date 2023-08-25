@@ -37,7 +37,6 @@ def execute_spell_file(spell_file):
     # Check if spell file has .spell extension, add if missing
     if not spell_file_path.endswith('.spell'):
         spell_file_path += '.spell'
-    
     # Check if the spell_file exists in the tome_path
     if not os.path.exists(spell_file_path):
         click.echo(f"Could not find {spell_file}.spell in .tome directory. Checking current directory for .tome directory...")

@@ -7,5 +7,7 @@
 .scratch
 .graveyard
 .dalle_test
+magi_cli.egg-info
 magi_cli.zip
 build
+.gitignore
