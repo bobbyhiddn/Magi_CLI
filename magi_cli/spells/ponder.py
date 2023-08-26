@@ -3,6 +3,8 @@ import inspect
 import os
 import sys
 import glob
+import pathlib
+import importlib.util
 
 @click.command()
 @click.argument('file', required=False)
