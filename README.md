@@ -9,7 +9,7 @@ Embrace the arcane with Magi CLI, a spellcasting-inspired command line interface
 
 Magi CLI is forged in Python, channeling the enigmatic power of the Click library. It offers an array of spells (commands) that manipulate the filesystem, manage files, and automate tasks. Designed to be extendable, Magi CLI allows you to add new spells as your knowledge of the hidden arts expands. It was also designed to be platform agnostic, but it should be used with a bash terminal like Git Bash for best performance. Use of Magi_CLI should empower the user, not remind them of the current in-sufficiently advanced software. Because remember Clarke's third law:
 
-****Any sufficiently advanced technology is indistinguishable from magic.****
+**Any sufficiently advanced technology is indistinguishable from magic.**
 
 ### Cast
 
