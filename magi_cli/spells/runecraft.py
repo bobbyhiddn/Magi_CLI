@@ -1,33 +1,38 @@
 import os
-import subprocess
-import click
-from PIL import Image, ImageDraw, ImageOps
-from io import BytesIO
 import requests
+from PIL import ImageDraw, Image, ImageOps
+import subprocess
+from io import BytesIO
 import openai
+import click
 import pkg_resources
 
-
 DEFAULT_IMAGE_PATH = pkg_resources.resource_filename('magi_cli.artifacts', 'Rune.png')
-
 
 # Function to generate an image using DALL-E API
 def generate_image(prompt):
     if 'OPENAI_API_KEY' in os.environ:
+        openai.api_key = os.environ['OPENAI_API_KEY']  # Make sure your API key is set in your environment variables
+        
+        # Using the correct function call as per OpenAI's documentation
         response = openai.Image.create(
-            model="image-alpha-001",
+            model="dall-e-3",
             prompt=prompt,
             n=1,
-            size="256x256",
+            size="1024x1024", # Make sure this is a supported size for dall-e-3
             response_format="url"
         )
+        
+        # Extract the image URL from the response
         image_url = response['data'][0]['url']
         image_data = requests.get(image_url).content
         image = Image.open(BytesIO(image_data))
     else:
         # Load the default image if the OPENAI_API_KEY environment variable is not set
         image = Image.open(DEFAULT_IMAGE_PATH)
+
     return image
+
 
 # Function to create a circular mask
 def create_circular_mask(image):
