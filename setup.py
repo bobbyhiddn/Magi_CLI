@@ -1,5 +1,9 @@
 from setuptools import setup, find_packages
 
+# Read the contents of your README file
+with open('README.md', 'r', encoding='utf-8') as f:
+    long_description = f.read()
+
 setup(
     name='magi_cli',
     version='0.1.1',
@@ -23,6 +27,8 @@ setup(
     author="Micah Longmire",
     author_email="mlmicahlongmire@gmail.com",
     description="Magi_CLI is a command line interface for those who desire software development to feel more like magic.",
+    long_description=long_description,  # Added long_description
+    long_description_content_type='text/markdown',  # Specify Markdown (or 'text/x-rst' if your README is reStructuredText)
     url="https://github.com/bobbyhiddn/Magi_CLI",
     classifiers=[
         "Programming Language :: Python :: 3",
