@@ -5,7 +5,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
     long_description = f.read()
 
 setup(
-    name='magi_cli',
+    name='magi_cli_pypi',
     version='0.1.3',  # Make sure to increment this if you are republishing
     packages=find_packages(),
     package_data={'magi_cli': ['artifacts/*.png']},
