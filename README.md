@@ -60,9 +60,18 @@ Commands are designed with a few things in mind:
 
 To wield the Magi CLI without invoking 'python magi_cli.py', install it with pip:
 
+#### Locally
+
 ```
 pip install .
 ```
+
+#### Or From PyPi
+
+```
+pip install magi-cli-pypi
+```
+#### Now Spellcast!
 
 Simply utter the spell name and the required incantations to harness its power:
 
