@@ -1,0 +1,2 @@
+[console_scripts]
+cast = magi_cli.cast:cast
