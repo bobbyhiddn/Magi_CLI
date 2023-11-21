@@ -1,6 +1,49 @@
 import click
 import re
 from openai import OpenAI
+import os
+from datetime import datetime
+
+def is_readable(file_path):
+    """Check if a file is readable as text."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            file.read(1024)  # Read only the first 1024 bytes for efficiency
+            return True
+    except (UnicodeDecodeError, IOError):
+        return False
+
+def read_directory(path, prefix="", md_file_name="directory_contents"):
+    """Recursively read the contents of a directory and write them to a Markdown file in the .aether directory."""
+    aether_dir = os.path.join(os.getcwd(), '.aether')
+    if not os.path.exists(aether_dir):
+        os.makedirs(aether_dir)
+
+    # Generate a timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    md_file_name_with_timestamp = f"{md_file_name}_{timestamp}.md"
+    markdown_file_path = os.path.join(aether_dir, md_file_name_with_timestamp)
+
+    contents = ""
+    with open(markdown_file_path, 'a', encoding='utf-8', errors='replace') as md_file:
+        for item in os.listdir(path):
+            full_path = os.path.join(path, item)
+            if os.path.isdir(full_path):
+                dir_line = f"{prefix}/{item}/\n"
+                contents += dir_line
+                md_file.write(f"## {dir_line}\n")
+                contents += read_directory(full_path, prefix=prefix + "/" + item, md_file_name=md_file_name)
+            else:
+                file_line = f"{prefix}/{item}: "
+                if is_readable(full_path):
+                    with open(full_path, 'r', encoding='utf-8', errors='replace') as file:
+                        file_content = file.read()
+                    file_line += f"\n```\n{file_content}\n```\n"
+                else:
+                    file_line += "[non-readable or binary content]\n"
+                contents += file_line
+                md_file.write(file_line)
+    return contents
 
 # Instantiate the OpenAI client
 client = OpenAI()
@@ -27,20 +70,27 @@ def aether_inquiry(file_paths):
         {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
 
-    # Process each file path provided
-    for file_path in file_paths:
-        with open(file_path, 'r') as file:
-            file_content = file.read()
-        message_log.append({"role": "user", "content": file_content})
+    message_log = [
+            {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
+        ]
+
+    # Check if any file paths are provided
+    if file_paths:
+        for file_path in file_paths:
+            if os.path.isdir(file_path):
+                # If it's a directory, read its contents
+                directory_contents = read_directory(file_path)
+                message_log.append({"role": "user", "content": directory_contents})
+            else:
+                with open(file_path, 'r') as file:
+                    file_content = file.read()
+                message_log.append({"role": "user", "content": file_content})
+        print("You provided files/folders as offerings to the aether. You may now ask your questions regarding them.")
+    else:
+        print("No file or folder provided. You may ask your questions to the aether.")
+
 
     last_response = ""
-    first_request = False
-
-    # Process each file path provided
-    for file_path in file_paths:
-        with open(file_path, 'r') as file:
-            file_content = file.read()
-        message_log.append({"role": "user", "content": file_content})
 
     while True:
         user_input = input("You: ")

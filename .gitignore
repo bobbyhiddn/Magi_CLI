@@ -1,6 +1,7 @@
 .env
 ./magi_cli/.env
 ./build
+.aether
 .runes
 .tome
 .orb
