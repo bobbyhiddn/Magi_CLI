@@ -1,44 +1,46 @@
 import click
-import openai
 import re
+from openai import OpenAI
 
-# Function to send a message to the OpenAI chatbot model and return its response
+# Instantiate the OpenAI client
+client = OpenAI()
+
 def send_message(message_log):
-    # Use OpenAI's ChatCompletion API to get the chatbot's response
-    response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",  # The name of the OpenAI chatbot model to use
-        messages=message_log,   # The conversation history up to this point, as a list of dictionaries
-        max_tokens=1500,        # The maximum number of tokens (words or subwords) in the generated response
-        stop=None,              # The stopping sequence for the generated response, if any (not used here)
-        temperature=0.7,        # The "creativity" of the generated response (higher temperature = more creative)
+    # Use the new chat completions API
+    response = client.chat.completions.create(
+        model="gpt-4-1106-preview",  # Keep the model as is
+        messages=message_log,
+        max_tokens=1500,
+        temperature=0.7,
     )
 
-    # Find the first response from the chatbot that has text in it (some responses may not have text)
-    for choice in response.choices:
-        if "text" in choice:
-            return choice.text
+    # Adjusted response handling
+    return response.choices[0].message.content if response.choices else ""
 
-    # If no response with text is found, return the first response's content (which may be empty)
-    return response.choices[0].message.content
 
 @click.command()
-@click.argument('file_path', required=False)  # Adding file_path as an optional argument
-def aether_inquiry(file_path=None):
+@click.argument('file_paths', nargs=-1)  # Accepts multiple file paths
+def aether_inquiry(file_paths):
     """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
 
     message_log = [
         {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
 
-    # If a file path is provided, read the file and append its content to the message_log
-    if file_path:
+    # Process each file path provided
+    for file_path in file_paths:
         with open(file_path, 'r') as file:
             file_content = file.read()
         message_log.append({"role": "user", "content": file_content})
-        print("You provided a file as offering to the aether. You may now ask your question regarding it.")
 
     last_response = ""
     first_request = False
+
+    # Process each file path provided
+    for file_path in file_paths:
+        with open(file_path, 'r') as file:
+            file_content = file.read()
+        message_log.append({"role": "user", "content": file_content})
 
     while True:
         user_input = input("You: ")
