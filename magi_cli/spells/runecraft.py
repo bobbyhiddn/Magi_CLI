@@ -45,7 +45,7 @@ def create_circular_mask(image):
 @click.command()
 @click.argument('file_path', required=True)
 def runecraft(file_path):
-    '''Generate a GUI for a Bash script in the form of an enchanted rune.'''
+    ''' 'rc' - Generate a GUI for a Bash script in the form of an enchanted rune.'''
     print("Gathering the mana...")
     print("Applying the enchantment...")
     print("Engaging the arcane energies...")

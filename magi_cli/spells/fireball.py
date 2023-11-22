@@ -5,7 +5,7 @@ import shutil
 @click.command()
 @click.argument('path', required=True)
 def fireball(path):
-    """Deletes a directory or file."""
+    """ 'fb' - Deletes a directory or file."""
     graveyard_path = ".graveyard"
     if os.path.exists(path):
         click.echo(f"Your hands tremble as you draw upon the arcane energies...\n")

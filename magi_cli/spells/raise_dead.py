@@ -7,7 +7,7 @@ from datetime import datetime
 @click.command()
 @click.argument('spirit', required=False)
 def raise_dead(spirit=None):
-    """Restore a spirit from the graveyard."""
+    """ 'rd' - Restore a spirit from the graveyard."""
     if spirit:
         source_path = os.path.join(".graveyard", spirit)
         if os.path.exists(source_path):
