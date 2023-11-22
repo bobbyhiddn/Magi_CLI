@@ -5,7 +5,7 @@ import shutil
 @click.command()
 @click.argument('spell_file', required=True)
 def banish(spell_file):
-    '''Banish a target to the /tmp directory in a .exile folder. If no /tmp directory exists, place it in a C:\\temp\.exile directory.'''
+    ''' 'bn' - Banish a target to the /tmp directory in a .exile folder. If no /tmp directory exists, place it in a C:\\temp\.exile directory.'''
     # Check if /tmp exists
     if os.path.exists("/tmp"):
         exile_dir_unix = "/tmp/.exile"

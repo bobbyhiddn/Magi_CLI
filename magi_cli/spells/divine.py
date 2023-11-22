@@ -7,7 +7,7 @@ from datetime import datetime
 @click.command()
 @click.argument('search_term', required=False)
 def divine(search_term):
-    """List the directory contents with detailed information, or find a file anywhere below the root directory, searching through child directories, and echo its path."""
+    """ 'dv' - List the directory contents with detailed information, or find a file anywhere below the root directory, searching through child directories, and echo its path."""
     if search_term:
         click.echo(f"You cast your senses into the ether, seeking knowledge of the realm...\n")
         for root, dirs, files in os.walk('.'):  # Start search from the root directory

@@ -7,7 +7,7 @@ import glob
 @click.command()
 @click.argument('file', required=False)
 def ponder(file):
-    """Ponders a specific file or all spells in the .orb directory."""
+    """ 'pd' - Ponders a specific file or all spells in the .orb directory."""
     orb_dir = ".orb"
 
     # If .orb directory does not exist, create it

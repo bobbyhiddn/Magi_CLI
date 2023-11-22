@@ -3,7 +3,7 @@ import os
 
 @click.command()
 def necromancy():
-    """Start a session that keeps a memory of deleted files."""
+    """ 'nc' - Start a session that keeps a memory of deleted files."""
     path = ".graveyard"
     try:
         os.mkdir(path)
@@ -12,7 +12,7 @@ def necromancy():
     else:
         click.echo("You weave the spell and a graveyard appears, ready to accept the spirits of the deceased files.")
 
-alias = "nm"
+alias = "nc"
 
 if __name__ == '__main__':
     necromancy()

@@ -5,7 +5,7 @@ import os
 @click.argument('num_commands', type=int, required=True)
 @click.argument('spell_file', required=True)
 def spellcraft(num_commands, spell_file):
-    """Create a macro spell and store it in .tome."""
+    """ 'sc' - Create a macro spell and store it in .tome."""
     default_tome_dir = os.getenv("TOME_PATH")  # Get default .tome location from environment variable
     tome_dir = default_tome_dir if default_tome_dir else ".tome"  # Use .tome in current directory if default location is not set
 
