@@ -86,3 +86,8 @@ def file(file_path):
         with open(absolute_path, 'w') as file:
             file.write(request.data.decode())
         return '', 204
+    
+alias = "ar"
+
+if __name__ == '__main__':
+    astral_realm()

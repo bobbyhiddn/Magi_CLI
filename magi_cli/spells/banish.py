@@ -19,3 +19,8 @@ def banish(spell_file):
             os.mkdir(exile_dir_win)
         shutil.move(spell_file, os.path.join(exile_dir_win, os.path.basename(spell_file)))
         click.echo(f"{spell_file} has been banished to the C:\\temp directory in a .exile folder.")
+
+alias = "bn"
+
+if __name__ == '__main__':
+    banish()

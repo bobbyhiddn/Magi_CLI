@@ -225,6 +225,8 @@ sys.exit(app.exec_())
     # Now run the new file
     subprocess.Popen(["python", os.path.join(rune_dir, gui_file_name)], start_new_session=True)
 
+alias = "rc"
+
 if __name__ == '__main__':
     runecraft()
 

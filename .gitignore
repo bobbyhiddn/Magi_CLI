@@ -1,11 +1,14 @@
 .env
 ./magi_cli/.env
 ./build
+.aether
 .runes
 .tome
 .orb
 .scratch
 .graveyard
 .dalle_test
+magi_cli_pypi.egg-info
+magi_cli.egg-info
 magi_cli.zip
 build

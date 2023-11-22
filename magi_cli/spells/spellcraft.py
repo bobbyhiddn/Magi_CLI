@@ -36,3 +36,8 @@ def spellcraft(num_commands, spell_file):
             f.write(f"{command}\n")
 
     click.echo(f"Macro spell created and stored in {spell_file_path}")
+
+alias = "sc"
+
+if __name__ == '__main__':
+    spellcraft()

@@ -1,44 +1,102 @@
 import click
-import openai
 import re
+from openai import OpenAI
+import os
+from datetime import datetime
 
-# Function to send a message to the OpenAI chatbot model and return its response
+def is_readable(file_path):
+    """Check if a file is readable as text."""
+    try:
+        with open(file_path, 'r', encoding='utf-8') as file:
+            file.read(1024)  # Read only the first 1024 bytes for efficiency
+            return True
+    except (UnicodeDecodeError, IOError):
+        return False
+
+def read_directory(path, prefix="", md_file_name="directory_contents"):
+    """Recursively read the contents of a directory and write them to a Markdown file in the .aether directory."""
+    aether_dir = os.path.join(os.getcwd(), '.aether')
+    if not os.path.exists(aether_dir):
+        os.makedirs(aether_dir)
+
+    # Generate a timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    md_file_name_with_timestamp = f"{md_file_name}_{timestamp}.md"
+    markdown_file_path = os.path.join(aether_dir, md_file_name_with_timestamp)
+
+    contents = ""
+    with open(markdown_file_path, 'a', encoding='utf-8', errors='replace') as md_file:
+        for item in os.listdir(path):
+            full_path = os.path.join(path, item)
+            if os.path.isdir(full_path):
+                dir_line = f"{prefix}/{item}/\n"
+                contents += dir_line
+                md_file.write(f"## {dir_line}\n")
+                contents += read_directory(full_path, prefix=prefix + "/" + item, md_file_name=md_file_name)
+            else:
+                file_line = f"{prefix}/{item}: "
+                if is_readable(full_path):
+                    with open(full_path, 'r', encoding='utf-8', errors='replace') as file:
+                        file_content = file.read()
+                    file_line += f"\n```\n{file_content}\n```\n"
+                else:
+                    file_line += "[non-readable or binary content]\n"
+                contents += file_line
+                md_file.write(file_line)
+    return contents
+
+# Instantiate the OpenAI client
+client = OpenAI()
+
 def send_message(message_log):
-    # Use OpenAI's ChatCompletion API to get the chatbot's response
-    response = openai.ChatCompletion.create(
-        model="gpt-4-1106-preview",  # The name of the OpenAI chatbot model to use
-        messages=message_log,   # The conversation history up to this point, as a list of dictionaries
-        max_tokens=1500,        # The maximum number of tokens (words or subwords) in the generated response
-        stop=None,              # The stopping sequence for the generated response, if any (not used here)
-        temperature=0.7,        # The "creativity" of the generated response (higher temperature = more creative)
+    # Use the new chat completions API
+    response = client.chat.completions.create(
+        model="gpt-4-1106-preview",  # Keep the model as is
+        messages=message_log,
+        max_tokens=1500,
+        temperature=0.7,
     )
 
-    # Find the first response from the chatbot that has text in it (some responses may not have text)
-    for choice in response.choices:
-        if "text" in choice:
-            return choice.text
+    # Adjusted response handling
+    return response.choices[0].message.content if response.choices else ""
 
-    # If no response with text is found, return the first response's content (which may be empty)
-    return response.choices[0].message.content
 
 @click.command()
-@click.argument('file_path', required=False)  # Adding file_path as an optional argument
-def aether_inquiry(file_path=None):
+@click.argument('file_paths', nargs=-1)  # Accepts multiple file paths
+def aether_inquiry(file_paths):
     """Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
 
     message_log = [
         {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
 
-    # If a file path is provided, read the file and append its content to the message_log
-    if file_path:
-        with open(file_path, 'r') as file:
-            file_content = file.read()
-        message_log.append({"role": "user", "content": file_content})
-        print("You provided a file as offering to the aether. You may now ask your question regarding it.")
+    message_log = [
+            {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
+        ]
+
+    # Check if any file paths are provided
+    if file_paths:
+        for file_path in file_paths:
+            if os.path.isdir(file_path):
+                # Ask user if they want to transcribe directory contents
+                transcribe_confirm = input(f"Do you want to transcribe the contents of the directory '{file_path}' to the .aether directory? (yes/no): ")
+                if transcribe_confirm.lower() in ['yes', 'y']:
+                    # If it's a directory and user confirms, read its contents
+                    directory_contents = read_directory(file_path)
+                    message_log.append({"role": "user", "content": directory_contents})
+                else:
+                    print(f"Skipping transcription of '{file_path}'.")
+            else:
+                # Process files as before
+                with open(file_path, 'r') as file:
+                    file_content = file.read()
+                message_log.append({"role": "user", "content": file_content})
+        print("You provided files/folders as offerings to the aether. You may now ask your questions regarding them.")
+    else:
+        print("No file or folder provided. You may ask your questions to the aether.")
+
 
     last_response = ""
-    first_request = False
 
     while True:
         user_input = input("You: ")
@@ -48,8 +106,14 @@ def aether_inquiry(file_path=None):
             break
 
         elif user_input.lower() == "scribe":
-            # Prompt the user whether they want to save the last response as a spell file, bash file, Python script, or just copy the last message
-            save_prompt = input("Do you want to save the last response as a spell file, bash file, Python script, or just copy the last message? (spell/bash/python/copy/none): ")
+            save_prompt = input("Do you want to save the last response as a spell file, bash file, Python script, Markdown file, or just copy the last message? (spell/bash/python/markdown/copy/none): ")
+
+            if save_prompt.lower() == "markdown":
+                # Save as Markdown file
+                markdown_file_name = input("Enter the name for the Markdown file (without the .md extension): ")
+                with open(f"{markdown_file_name}.md", 'w') as md_file:
+                    md_file.write(f"# Response\n\n{last_response}")
+                print(f"Markdown saved as {markdown_file_name}.md.")
 
             if save_prompt.lower() == "spell":
                 # Save as spell file
@@ -102,6 +166,8 @@ def aether_inquiry(file_path=None):
             message_log.append({"role": "assistant", "content": response})
             print(f"mAGI: {response}")
             last_response = response
+
+alias = "ai"
 
 if __name__ == '__main__':
     aether_inquiry()
