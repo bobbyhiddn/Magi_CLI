@@ -31,3 +31,8 @@ def fireball(path):
                 os.remove(os.path.join(graveyard_path, files_in_graveyard[0]))
     else:
         click.echo(f"Your fireball fizzles... The target at {path} does not exist. Even in the arcane arts, one cannot destroy what is already absent.")
+
+alias = "fb"
+
+if __name__ == '__main__':
+    fireball()

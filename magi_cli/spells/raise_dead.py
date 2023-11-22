@@ -28,3 +28,7 @@ def raise_dead(spirit=None):
             shutil.move(source_path, destination_path)
             click.echo(f"The spirit of {spirit} has been restored to this realm, now known as undead_{spirit}.")
 
+alias = "rd"
+
+if __name__ == '__main__':
+    raise_dead()

@@ -78,10 +78,16 @@ def aether_inquiry(file_paths):
     if file_paths:
         for file_path in file_paths:
             if os.path.isdir(file_path):
-                # If it's a directory, read its contents
-                directory_contents = read_directory(file_path)
-                message_log.append({"role": "user", "content": directory_contents})
+                # Ask user if they want to transcribe directory contents
+                transcribe_confirm = input(f"Do you want to transcribe the contents of the directory '{file_path}' to the .aether directory? (yes/no): ")
+                if transcribe_confirm.lower() in ['yes', 'y']:
+                    # If it's a directory and user confirms, read its contents
+                    directory_contents = read_directory(file_path)
+                    message_log.append({"role": "user", "content": directory_contents})
+                else:
+                    print(f"Skipping transcription of '{file_path}'.")
             else:
+                # Process files as before
                 with open(file_path, 'r') as file:
                     file_content = file.read()
                 message_log.append({"role": "user", "content": file_content})
@@ -100,8 +106,14 @@ def aether_inquiry(file_paths):
             break
 
         elif user_input.lower() == "scribe":
-            # Prompt the user whether they want to save the last response as a spell file, bash file, Python script, or just copy the last message
-            save_prompt = input("Do you want to save the last response as a spell file, bash file, Python script, or just copy the last message? (spell/bash/python/copy/none): ")
+            save_prompt = input("Do you want to save the last response as a spell file, bash file, Python script, Markdown file, or just copy the last message? (spell/bash/python/markdown/copy/none): ")
+
+            if save_prompt.lower() == "markdown":
+                # Save as Markdown file
+                markdown_file_name = input("Enter the name for the Markdown file (without the .md extension): ")
+                with open(f"{markdown_file_name}.md", 'w') as md_file:
+                    md_file.write(f"# Response\n\n{last_response}")
+                print(f"Markdown saved as {markdown_file_name}.md.")
 
             if save_prompt.lower() == "spell":
                 # Save as spell file
@@ -154,6 +166,8 @@ def aether_inquiry(file_paths):
             message_log.append({"role": "assistant", "content": response})
             print(f"mAGI: {response}")
             last_response = response
+
+alias = "ai"
 
 if __name__ == '__main__':
     aether_inquiry()

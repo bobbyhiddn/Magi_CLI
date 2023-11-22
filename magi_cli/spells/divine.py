@@ -27,3 +27,8 @@ def divine(search_term):
             file_permissions = oct(os.stat(file_path).st_mode)[-3:]
             file_modified = datetime.fromtimestamp(os.path.getmtime(file_path)).strftime('%Y-%m-%d %H:%M:%S')
             click.echo(f"{file}\tSize: {file_size} bytes\tPermissions: {file_permissions}\tLast Modified: {file_modified}")
+
+alias = "dv"
+
+if __name__ == '__main__':
+    divine()

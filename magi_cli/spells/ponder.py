@@ -58,3 +58,8 @@ def ponder(file):
                 click.echo(f"Spell {spell_name_to_ponder} does not exist in the .orb directory.")
         else:
             click.echo("No magics were found in your orb.")
+
+alias = "pd"
+
+if __name__ == '__main__':
+    ponder()

@@ -6,7 +6,7 @@ import sys
 import os
 import openai # type: ignore
 import glob
-from magi_cli.spells import commands_list
+from magi_cli.spells import commands_list, aliases
 
 # Load the Openai API key
 # This can also be done by setting the OPENAI_API_KEY environment variable manually.
@@ -59,7 +59,7 @@ def execute_spell_file(spell_file):
 @click.argument('input', nargs=-1)
 def cast(input):
     input = list(input)  # Convert input into a list to separate command and arguments
-    
+
     tome_path = os.getenv("TOME_PATH", ".tome")
 
     if not input:
@@ -72,10 +72,21 @@ def cast(input):
         for file in glob.glob(f"{tome_path}/*.spell"):
             print(f"- {os.path.basename(file)}")
 
+        print("\nAvailable aliases:")
+        for alias, command in aliases.items():
+            print(f"- {alias}: {command.name}")
+
+    elif input[0] in aliases:
+        # If the input is a registered alias, invoke the corresponding command
+        command = aliases[input[0]]
+        ctx = click.get_current_context()
+        ctx.invoke(command, file_paths=input[1:])
+
     elif input[0] in cli.commands:
-        # If the first input is a registered command, pass all other arguments to it
+        # If the input is a registered command, pass all other arguments to it
         ctx = click.get_current_context()
         ctx.invoke(cli.commands[input[0]], file_paths=input[1:])
+
     else:
         # Check if the input is a file and execute accordingly
         file_path = os.path.join(tome_path, input[0])
@@ -89,6 +100,7 @@ def cast(input):
                 execute_bash_file(target_file)
         else:
             print(f"Error: Command or file '{input[0]}' not found.")
+
 
 @click.group()
 @click.pass_context
