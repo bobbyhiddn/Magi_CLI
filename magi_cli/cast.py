@@ -93,7 +93,7 @@ def cast(input):
 
         # Check if there are additional arguments and pass them as 'file_paths' if the command expects it
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1])
+            ctx.invoke(command, file_paths=[input[1]])
         else:
             ctx.invoke(command)
 
@@ -102,9 +102,9 @@ def cast(input):
         ctx = click.get_current_context()
         command = cli.commands[input[0]]
 
-        # Pass only the first argument to the command
+        # Pass the entire second argument to the command
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1])
+            ctx.invoke(command, file_paths=[input[1]])
         else:
             ctx.invoke(command)
 
