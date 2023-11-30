@@ -8,6 +8,16 @@ import openai # type: ignore
 import glob
 from magi_cli.spells import commands_list, aliases
 
+@click.group()
+@click.pass_context
+def cli(ctx):
+    """A Python CLI for casting spells."""
+    pass
+
+for command in commands_list:
+    cli.add_command(command)
+
+
 # Load the Openai API key
 # This can also be done by setting the OPENAI_API_KEY environment variable manually.
 # load_dotenv() # Uncomment this line if you want to load the API key from the .env file
@@ -83,18 +93,18 @@ def cast(input):
 
         # Check if there are additional arguments and pass them as 'file_paths' if the command expects it
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1:])
+            ctx.invoke(command, file_paths=input[1])
         else:
             ctx.invoke(command)
 
     elif input[0] in cli.commands:
-    # If the input is a registered command, pass all other arguments to it
+        # If the input is a registered command, pass all other arguments to it
         ctx = click.get_current_context()
         command = cli.commands[input[0]]
 
-        # Check if there are additional arguments and pass them using **kwargs
+        # Pass only the first argument to the command
         if len(input) > 1:
-            ctx.invoke(command, **{'file_paths': input[1:]})
+            ctx.invoke(command, file_paths=input[1])
         else:
             ctx.invoke(command)
 
@@ -111,16 +121,6 @@ def cast(input):
                 execute_bash_file(target_file)
         else:
             print(f"Error: Command or file '{input[0]}' not found.")
-
-
-@click.group()
-@click.pass_context
-def cli(ctx):
-    """A Python CLI for casting spells."""
-    pass
-
-for command in commands_list:
-    cli.add_command(command)
 
 if __name__ == "__main__":
     cast()
