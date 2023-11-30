@@ -5,8 +5,8 @@ import sys
 import glob
 
 @click.command()
-@click.argument('file', required=False)
-def ponder(file):
+@click.argument('file_paths', nargs=-1, required=False)  # Accepts a variable number of arguments
+def ponder(file_paths):
     """ 'pd' - Ponders a specific file or all spells in the .orb directory."""
     orb_dir = ".orb"
 
@@ -14,6 +14,7 @@ def ponder(file):
     if not os.path.exists(orb_dir):
         os.mkdir(orb_dir)
 
+    file = file_paths[0] if file_paths else None  # Extract file name if provided
     if file:
         # If a file argument was supplied, check if it exists in the current directory
         if os.path.exists(file):

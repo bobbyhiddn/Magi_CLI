@@ -17,7 +17,6 @@ def cli(ctx):
 for command in commands_list:
     cli.add_command(command)
 
-
 # Load the Openai API key
 # This can also be done by setting the OPENAI_API_KEY environment variable manually.
 # load_dotenv() # Uncomment this line if you want to load the API key from the .env file
@@ -90,23 +89,12 @@ def cast(input):
         # If the input is a registered alias, invoke the corresponding command
         command = aliases[input[0]]
         ctx = click.get_current_context()
-
-        # Check if there are additional arguments and pass them as 'file_paths' if the command expects it
-        if len(input) > 1:
-            ctx.invoke(command, file_paths=[input[1]])
-        else:
-            ctx.invoke(command)
+        ctx.invoke(command, file_paths=input[1:])
 
     elif input[0] in cli.commands:
         # If the input is a registered command, pass all other arguments to it
         ctx = click.get_current_context()
-        command = cli.commands[input[0]]
-
-        # Pass the entire second argument to the command
-        if len(input) > 1:
-            ctx.invoke(command, file_paths=[input[1]])
-        else:
-            ctx.invoke(command)
+        ctx.invoke(cli.commands[input[0]], file_paths=input[1:])
 
     else:
         # Check if the input is a file and execute accordingly
@@ -121,6 +109,7 @@ def cast(input):
                 execute_bash_file(target_file)
         else:
             print(f"Error: Command or file '{input[0]}' not found.")
+
 
 if __name__ == "__main__":
     cast()
