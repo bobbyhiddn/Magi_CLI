@@ -70,9 +70,33 @@ def aether_inquiry(file_paths):
         {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
 
-    message_log = [
-            {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
-        ]
+        # Check for previous conversations
+    previous_inquiries = []
+    aether_dir = os.path.join(os.getcwd(), '.aether')
+    if os.path.exists(aether_dir):
+        for filename in os.listdir(aether_dir):
+            if filename.startswith('Inquiry-') and filename.endswith('.md'):
+                previous_inquiries.append(filename)
+
+
+    if previous_inquiries:
+        continue_prompt = input("Do you want to pick up where you left off from another conversation? (y/n): ")
+        if continue_prompt.lower() in ['y', 'yes']:
+            print("Select a previous conversation to continue:")
+            for idx, filename in enumerate(previous_inquiries, 1):
+                print(f"{idx}. {filename}")
+            selected_index = input("Enter the number of the conversation (just press enter to skip): ")
+            if selected_index.isdigit():
+                selected_index = int(selected_index) - 1
+                if 0 <= selected_index < len(previous_inquiries):
+                    with open(os.path.join(aether_dir, previous_inquiries[selected_index]), 'r') as f:
+                        previous_conversation = f.read()
+                    # Add the previous conversation to the message log
+                    message_log.append({"role": "user", "content": previous_conversation})
+                    print("You may now ask your questions to the aether.")
+                else:
+                    print("Invalid selection. Skipping.")
+                    
 
     # Check if any file paths are provided
     if file_paths:
@@ -102,7 +126,17 @@ def aether_inquiry(file_paths):
         user_input = input("You: ")
 
         if user_input.lower() == "quit":
-            print("I await your summons.")
+            save_prompt = input("Do you want to save this conversation? (y/n): ")
+            if save_prompt.lower() in ['y', 'yes']:
+                timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+                inquiry_filename = f"Inquiry-{timestamp}.md"
+                with open(os.path.join(aether_dir, inquiry_filename), 'w') as f:
+                    f.write(f"# Aether Inquiry Conversation - {timestamp}\n\n")
+                    for message in message_log:
+                        sender = 'User' if message['role'] == 'user' else 'mAGI'
+                        f.write(f"{sender}: {message['content']}\n\n")
+                print(f"Conversation saved as {inquiry_filename}.")
+            print("Farewell until next time.")
             break
 
         elif user_input.lower() == "scribe":

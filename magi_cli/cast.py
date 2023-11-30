@@ -8,6 +8,15 @@ import openai # type: ignore
 import glob
 from magi_cli.spells import commands_list, aliases
 
+@click.group()
+@click.pass_context
+def cli(ctx):
+    """A Python CLI for casting spells."""
+    pass
+
+for command in commands_list:
+    cli.add_command(command)
+
 # Load the Openai API key
 # This can also be done by setting the OPENAI_API_KEY environment variable manually.
 # load_dotenv() # Uncomment this line if you want to load the API key from the .env file
@@ -101,15 +110,6 @@ def cast(input):
         else:
             print(f"Error: Command or file '{input[0]}' not found.")
 
-
-@click.group()
-@click.pass_context
-def cli(ctx):
-    """A Python CLI for casting spells."""
-    pass
-
-for command in commands_list:
-    cli.add_command(command)
 
 if __name__ == "__main__":
     cast()
