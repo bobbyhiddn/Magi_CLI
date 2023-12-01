@@ -1,5 +1,17 @@
+import os
 import pkgutil
 import importlib
+
+# Set default SANCTUM_PATH to the user's home directory
+SANCTUM_PATH = os.getenv('SANCTUM_PATH', os.path.join(os.path.expanduser('~'), '.sanctum'))
+
+# Ensure the SANCTUM_PATH directory exists
+if not os.path.exists(SANCTUM_PATH):
+    os.makedirs(SANCTUM_PATH)
+
+# Set other paths relative to SANCTUM_PATH
+TOME_PATH = os.path.join(SANCTUM_PATH, '.tome')
+RUNE_DIR = os.path.join(SANCTUM_PATH, '.runes')
 
 __all__ = []
 commands_list = []  # List to store command functions

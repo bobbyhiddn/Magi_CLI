@@ -3,16 +3,13 @@ import inspect
 import os
 import sys
 import glob
+from spells import SANCTUM_PATH
 
 @click.command()
 @click.argument('file_paths', nargs=-1, required=False)  # Accepts a variable number of arguments
 def ponder(file_paths):
     """ 'pd' - Ponders a specific file or all spells in the .orb directory."""
-    orb_dir = ".orb"
-
-    # If .orb directory does not exist, create it
-    if not os.path.exists(orb_dir):
-        os.mkdir(orb_dir)
+    orb_dir = os.path.join(SANCTUM_PATH, '.orb')
 
     file = file_paths[0] if file_paths else None  # Extract file name if provided
     if file:

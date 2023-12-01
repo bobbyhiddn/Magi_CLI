@@ -3,6 +3,7 @@ import re
 from openai import OpenAI
 import os
 from datetime import datetime
+from magi_cli.spells import SANCTUM_PATH
 
 def is_readable(file_path):
     """Check if a file is readable as text."""
@@ -15,7 +16,7 @@ def is_readable(file_path):
 
 def read_directory(path, prefix="", md_file_name="directory_contents"):
     """Recursively read the contents of a directory and write them to a Markdown file in the .aether directory."""
-    aether_dir = os.path.join(os.getcwd(), '.aether')
+    aether_dir = os.path.join(SANCTUM_PATH, '.aether')
     if not os.path.exists(aether_dir):
         os.makedirs(aether_dir)
 
@@ -70,9 +71,11 @@ def aether_inquiry(file_paths):
         {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
 
-        # Check for previous conversations
+    # Check for previous conversations
     previous_inquiries = []
-    aether_dir = os.path.join(os.getcwd(), '.aether')
+
+    # Use SANCTUM_PATH for .aether directory
+    aether_dir = os.path.join(SANCTUM_PATH, '.aether')
     if os.path.exists(aether_dir):
         for filename in os.listdir(aether_dir):
             if filename.startswith('Inquiry-') and filename.endswith('.md'):

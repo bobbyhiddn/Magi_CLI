@@ -6,7 +6,9 @@ import sys
 import os
 import openai # type: ignore
 import glob
-from magi_cli.spells import commands_list, aliases
+from magi_cli.spells import commands_list, aliases, SANCTUM_PATH
+import warnings
+
 
 @click.group()
 @click.pass_context
@@ -17,11 +19,16 @@ def cli(ctx):
 for command in commands_list:
     cli.add_command(command)
 
-# Load the Openai API key
 # This can also be done by setting the OPENAI_API_KEY environment variable manually.
-# load_dotenv() # Uncomment this line if you want to load the API key from the .env file
+
+# Load the Openai API key
 api_key = os.getenv("OPENAI_API_KEY")
 
+if not api_key:
+    warnings.warn("If you would like to inquire the aether or generate runes, please set the OPENAI_API_KEY environment variable.")
+else:
+    # Set the API key for the OpenAI package
+    openai.api_key = api_key
 # Load the defauit .tome directory path
 tome_path = os.getenv("TOME_PATH")
 
@@ -38,7 +45,7 @@ def execute_python_file(filename, args):
     subprocess.run([sys.executable, filename, *args], check=True)
 
 def execute_spell_file(spell_file):
-    tome_path = os.getenv("TOME_PATH")
+    tome_path = os.path.join(SANCTUM_PATH, '.tome')
     spell_file_path = spell_file if '.tome' in spell_file else os.path.join(tome_path, spell_file)
 
     if not spell_file_path.endswith('.spell'):
@@ -69,7 +76,8 @@ def execute_spell_file(spell_file):
 def cast(input):
     input = list(input)  # Convert input into a list to separate command and arguments
 
-    tome_path = os.getenv("TOME_PATH", ".tome")
+    # Use SANCTUM_PATH for the .tome directory
+    tome_path = os.path.join(SANCTUM_PATH, '.tome')
 
     if not input:
         # Display available commands and spells if no input is provided
@@ -86,24 +94,18 @@ def cast(input):
             print(f"- {alias}: {command.name}")
 
     elif input[0] in aliases:
-        # If the input is a registered alias, invoke the corresponding command
         command = aliases[input[0]]
-        ctx = click.get_current_context()
-
-        # Check if there are additional arguments and pass them as 'file_paths' if the command expects it
+        ctx = click.get_current_context()  # Define ctx here
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1])
+            ctx.invoke(command, file_paths=input[1:])
         else:
             ctx.invoke(command)
 
     elif input[0] in cli.commands:
-        # If the input is a registered command, pass all other arguments to it
-        ctx = click.get_current_context()
+        ctx = click.get_current_context()  # Define ctx here
         command = cli.commands[input[0]]
-
-        # Pass only the first argument to the command
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1])
+            ctx.invoke(command, file_paths=input[1:])
         else:
             ctx.invoke(command)
 

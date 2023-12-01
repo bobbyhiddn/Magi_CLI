@@ -6,6 +6,7 @@ from io import BytesIO
 from openai import OpenAI
 import click
 import pkg_resources
+from spells import SANCTUM_PATH
 
 DEFAULT_IMAGE_PATH = pkg_resources.resource_filename('magi_cli.artifacts', 'Rune.png')
 
@@ -76,8 +77,10 @@ def runecraft(file_paths):
     image_width, image_height = circular_image.size
     file_extension = os.path.splitext(base_filename)[1]
 
-    # Create a new directory for the rune
-    rune_dir = f".runes/{base_filename.rsplit('.', 1)[0]}"
+    # Use SANCTUM_PATH for .runes directory
+    runes_dir = os.path.join(SANCTUM_PATH, '.runes')
+    rune_subdir = base_filename.rsplit('.', 1)[0]
+    rune_dir = os.path.join(runes_dir, rune_subdir)
     os.makedirs(rune_dir, exist_ok=True)
 
     # Save the generated image as a PNG
