@@ -3,7 +3,7 @@ import inspect
 import os
 import sys
 import glob
-from spells import SANCTUM_PATH
+from magi_cli.spells import SANCTUM_PATH 
 
 @click.command()
 @click.argument('file_paths', nargs=-1, required=False)  # Accepts a variable number of arguments

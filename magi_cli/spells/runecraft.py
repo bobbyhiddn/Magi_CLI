@@ -6,7 +6,7 @@ from io import BytesIO
 from openai import OpenAI
 import click
 import pkg_resources
-from spells import SANCTUM_PATH
+from magi_cli.spells import SANCTUM_PATH 
 
 DEFAULT_IMAGE_PATH = pkg_resources.resource_filename('magi_cli.artifacts', 'Rune.png')
 

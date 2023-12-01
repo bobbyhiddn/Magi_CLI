@@ -1,7 +1,7 @@
 import click
 import os
 import shutil
-from spells import SANCTUM_PATH
+from magi_cli.spells import SANCTUM_PATH 
 
 @click.command()
 @click.argument('file_paths', nargs=-1, required=True)  # Accept multiple file paths
