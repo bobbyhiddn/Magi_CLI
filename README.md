@@ -41,18 +41,18 @@ Commands are designed with a few things in mind:
 
 5. **Raise_Dead**: ('**rd**') Commune with the spirits in the '.graveyard' and restore them to the material plane if desired. This command lists all files in the '.graveyard' directory and allows you to restore them if desired.
 
-6. **Spellcraft**: ('**sc**') Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory.
+6. **Spellcraft**: ('**sc**') Weave multiple commands into a powerful macro spell, inscribing it in '.spell' scrolls. The commands are saved in the order they were channeled and can be executed in sequence. These spells are then recorded in a .tome directory within your .sanctum folder.
 
 7. **Runecraft**: ('**rc**') Craft a rune through the power of sigaldry enchanted with a single spell. Creates a button GUI with PyQT5 that can be used to execute a spell, bash, or python file. The image for the rune is generated with DALL-E, so the OPENAI_API_KEY environment variable must be set. This might be my favorite spell. The purpose of this is to have an easy way to repeat a command or script in an efficient way without having to schedule it with Unseen_Servant or type out the command every time. The GUI is also independant from the terminal in that it won't interfere with your other commands, but the execution of the file is run from the terminal the GUI was created on and when that terminal is closed, it will shut down the GUI.
 
-8. **Aether_Inquiry**: ('**ai**') Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API. This command will allow you to generate code to .spell files or ask questions about code, files, or even entire folders. If you give it a file argument, it will read the file provided and allow you to discuss it. If you don't provide a file, it will default to discussing code and will generate code for you to use in a .spell, .py, .bash, or .txt file by saying 'scribe' during the conversation. If you provide a folder, it will offer to transcribe the contents into one file in a .aether directory and allow you to converse with the contents of the entire folder! 
+8. **Aether_Inquiry**: ('**ai**') Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API. This command will allow you to generate code to .spell files or ask questions about code, files, or even entire folders. If you give it a file argument, it will read the file provided and allow you to discuss it. If you don't provide a file, it will default to discussing code and will generate code for you to use in a .spell, .py, .bash, or .txt file by saying `scribe` during the conversation. If you provide a folder, it will offer to transcribe the contents into one file in a .aether directory and allow you to converse with the contents of the entire folder! It also gives you the option to save the conversation to a markdown file and pick it up at a later date by typing `quit` during the conversation. 
    - Adding local LLM functionality soon!
 
 9. **Exile** - ('**ex**')Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
 
 ##### Future Spells
 
-1. **Unseen_Servant**: ('uss') Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
+1. **Unseen_Servant**: ('**uss**') Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
 2. **Astral_Realm**: ('**ar**') This would be a remote repository that stores your spells from your tome directory. This would allow you to share spells with other users and have a backup of your spells in case your tome is lost. (WIP)
 
 ### Usage
