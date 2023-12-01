@@ -10,12 +10,16 @@ from magi_cli.spells import SANCTUM_PATH
 
 DEFAULT_IMAGE_PATH = pkg_resources.resource_filename('magi_cli.artifacts', 'Rune.png')
 
-# Instantiate the OpenAI client
-client = OpenAI()
+# Conditional instantiation of the OpenAI client
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if OPENAI_API_KEY:
+    client = OpenAI(api_key=OPENAI_API_KEY)
+else:
+    client = None
 
 # Function to generate an image using DALL-E API
 def generate_image(prompt):
-    if 'OPENAI_API_KEY' in os.environ:        
+    if client:        
         response = client.images.generate(
             model="dall-e-3",
             prompt=prompt,
@@ -23,12 +27,12 @@ def generate_image(prompt):
             size="1024x1024",
             response_format="url"
         )
-        
         # Extract the image URL using dot notation
         image_url = response.data[0].url
         image_data = requests.get(image_url).content
         image = Image.open(BytesIO(image_data))
     else:
+        # Fallback to a default image if the client is not available
         image = Image.open(DEFAULT_IMAGE_PATH)
 
     return image

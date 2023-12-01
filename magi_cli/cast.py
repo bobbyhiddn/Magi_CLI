@@ -25,7 +25,7 @@ for command in commands_list:
 api_key = os.getenv("OPENAI_API_KEY")
 
 if not api_key:
-    warnings.warn("If you would like to inquire the aether or generate runes, please set the OPENAI_API_KEY environment variable.")
+    print("If you would like to inquire the aether or generate runes, please set the OPENAI_API_KEY environment variable.")
 else:
     # Set the API key for the OpenAI package
     openai.api_key = api_key

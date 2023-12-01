@@ -46,21 +46,30 @@ def read_directory(path, prefix="", md_file_name="directory_contents"):
                 md_file.write(file_line)
     return contents
 
-# Instantiate the OpenAI client
-client = OpenAI()
+# Conditional instantiation of the OpenAI client
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if OPENAI_API_KEY:
+    client = OpenAI(api_key=OPENAI_API_KEY)
+else:
+    client = None
+
 
 def send_message(message_log):
-    # Use the new chat completions API
-    response = client.chat.completions.create(
-        model="gpt-4-1106-preview",  # Keep the model as is
-        messages=message_log,
-        max_tokens=1500,
-        temperature=0.7,
-    )
+    # Check if the OpenAI client is instantiated
+    if client:
+        # Use the OpenAI API to send the message
+        response = client.chat.completions.create(
+            model="gpt-4-1106-preview",  # or your desired model
+            messages=message_log,
+            max_tokens=1500,
+            temperature=0.7,
+        )
 
-    # Adjusted response handling
-    return response.choices[0].message.content if response.choices else ""
-
+        # Return the response content if available
+        return response.choices[0].message.content if response.choices else "No response received from the aether."
+    else:
+        # Return a message indicating the API key is not set
+        return "OpenAI API key is not set. Unable to consult the aether for wisdom."
 
 @click.command()
 @click.argument('file_paths', nargs=-1)  # Accepts multiple file paths
