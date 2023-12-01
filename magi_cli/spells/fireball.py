@@ -1,12 +1,19 @@
 import click
 import os
 import shutil
+from magi_cli.spells import SANCTUM_PATH 
 
 @click.command()
 @click.argument('file_paths', nargs=-1, required=True)  # Accept multiple file paths
 def fireball(file_paths):
     """ 'fb' - Deletes a directory or file."""
-    graveyard_path = ".graveyard"
+    graveyard_path = os.path.join(SANCTUM_PATH, '.graveyard')
+
+    # Check if the graveyard exists
+    if not os.path.exists(graveyard_path):
+        click.echo("There are no graveyards available. Unable to cast fireball.")
+        return  # Break out of the function
+
     for file_path in file_paths:  # Iterate over each file path provided
         if os.path.exists(file_path):
             click.echo(f"Your hands tremble as you draw upon the arcane energies...\n")

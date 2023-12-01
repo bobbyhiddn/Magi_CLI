@@ -3,6 +3,7 @@ import re
 from openai import OpenAI
 import os
 from datetime import datetime
+from magi_cli.spells import SANCTUM_PATH
 
 def is_readable(file_path):
     """Check if a file is readable as text."""
@@ -15,7 +16,7 @@ def is_readable(file_path):
 
 def read_directory(path, prefix="", md_file_name="directory_contents"):
     """Recursively read the contents of a directory and write them to a Markdown file in the .aether directory."""
-    aether_dir = os.path.join(os.getcwd(), '.aether')
+    aether_dir = os.path.join(SANCTUM_PATH, '.aether')
     if not os.path.exists(aether_dir):
         os.makedirs(aether_dir)
 
@@ -45,21 +46,30 @@ def read_directory(path, prefix="", md_file_name="directory_contents"):
                 md_file.write(file_line)
     return contents
 
-# Instantiate the OpenAI client
-client = OpenAI()
+# Conditional instantiation of the OpenAI client
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+if OPENAI_API_KEY:
+    client = OpenAI(api_key=OPENAI_API_KEY)
+else:
+    client = None
+
 
 def send_message(message_log):
-    # Use the new chat completions API
-    response = client.chat.completions.create(
-        model="gpt-4-1106-preview",  # Keep the model as is
-        messages=message_log,
-        max_tokens=1500,
-        temperature=0.7,
-    )
+    # Check if the OpenAI client is instantiated
+    if client:
+        # Use the OpenAI API to send the message
+        response = client.chat.completions.create(
+            model="gpt-4-1106-preview",  # or your desired model
+            messages=message_log,
+            max_tokens=1500,
+            temperature=0.7,
+        )
 
-    # Adjusted response handling
-    return response.choices[0].message.content if response.choices else ""
-
+        # Return the response content if available
+        return response.choices[0].message.content if response.choices else "No response received from the aether."
+    else:
+        # Return a message indicating the API key is not set
+        return "OpenAI API key is not set. Unable to consult the aether for wisdom."
 
 @click.command()
 @click.argument('file_paths', nargs=-1)  # Accepts multiple file paths
@@ -70,9 +80,11 @@ def aether_inquiry(file_paths):
         {"role": "system", "content": "You are a wizard trained in the arcane. You have deep knowledge of software development and computer science. You can cast spells and read tomes to gain knowledge about problems. Please greet the user. All code and commands should be in code blocks in order to properly help the user craft spells."}
     ]
 
-        # Check for previous conversations
+    # Check for previous conversations
     previous_inquiries = []
-    aether_dir = os.path.join(os.getcwd(), '.aether')
+
+    # Use SANCTUM_PATH for .aether directory
+    aether_dir = os.path.join(SANCTUM_PATH, '.aether')
     if os.path.exists(aether_dir):
         for filename in os.listdir(aether_dir):
             if filename.startswith('Inquiry-') and filename.endswith('.md'):
