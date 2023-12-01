@@ -2,7 +2,8 @@ import click
 import os
 
 @click.command()
-def necromancy():
+@click.argument('file_paths', nargs=-1, required=False)  # Accepts any number of arguments but doesn't use them
+def necromancy(file_paths):
     """ 'nc' - Start a session that keeps a memory of deleted files."""
     path = ".graveyard"
     try:

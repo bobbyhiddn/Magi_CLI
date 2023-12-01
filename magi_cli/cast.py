@@ -17,7 +17,10 @@ def cli(ctx):
 for command in commands_list:
     cli.add_command(command)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b28261140a0a35a21854f98ed0007040f4d18560
 # Load the Openai API key
 # This can also be done by setting the OPENAI_API_KEY environment variable manually.
 # load_dotenv() # Uncomment this line if you want to load the API key from the .env file
