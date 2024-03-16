@@ -33,7 +33,7 @@ def warp(ctx, args):
     else:
         # If the alias is not found, go through registration wizard
         if click.confirm(f"Host '{alias}' not found. Would you like to register it?"):
-            register_host(alias, sessions)
+            register_host(alias)
         else:
             click.echo("Operation cancelled.")
 
@@ -49,10 +49,16 @@ def connect_to_host(session):
 
 def register_host(alias, sessions):
     """Register a new SSH session."""
+    click.echo("Starting the registration wizard...")
     host = click.prompt("Enter the host IP or hostname")
     user = click.prompt("Enter the username")
-    password = getpass("Enter the password") if click.confirm("Do you want to set a password?") else None
-    key = click.prompt("Enter the private key location") if click.confirm("Do you want to set a private key?") else None
+    password = None
+    if click.confirm("Do you want to set a password?"):
+        # Use click.prompt with hide_input=True as a fallback for getpass
+        password = click.prompt("Enter the password", hide_input=True)
+    key = None
+    if click.confirm("Do you want to set a private key?"):
+        key = click.prompt("Enter the private key location")
 
     # Add the new session to the .circle file
     sessions[alias] = {
