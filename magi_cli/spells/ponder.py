@@ -6,12 +6,12 @@ import glob
 from magi_cli.spells import SANCTUM_PATH 
 
 @click.command()
-@click.argument('file_paths', nargs=-1, required=False)  # Accepts a variable number of arguments
-def ponder(file_paths):
+@click.argument('args', nargs=-1, required=False)  # Accepts a variable number of arguments
+def ponder(args):
     """ 'pd' - Ponders a specific file or all spells in the .orb directory."""
     orb_dir = os.path.join(SANCTUM_PATH, '.orb')
 
-    file = file_paths[0] if file_paths else None  # Extract file name if provided
+    file = args[0] if args else None  # Extract file name if provided
     if file:
         # If a file argument was supplied, check if it exists in the current directory
         if os.path.exists(file):

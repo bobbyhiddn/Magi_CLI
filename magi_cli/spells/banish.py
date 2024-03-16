@@ -3,16 +3,16 @@ import os
 import shutil
 
 @click.command()
-@click.argument('file_paths', nargs=-1, required=True)  # Accepts multiple file paths
-def banish(file_paths):
+@click.argument('args', nargs=-1, required=True)  # Accepts multiple file paths
+def banish(args):
     ''' 'bn' - Banish a target to the /tmp directory in a .exile folder. If no /tmp directory exists, place it in a C:\\temp\\.exile directory.'''
     
-    if not file_paths:
+    if not args:
         click.echo("Error: No file path provided.")
         return
 
     # Handle the first file path from the list
-    file_path = file_paths[0]
+    file_path = args[0]
 
     # Check if /tmp exists (Unix systems) or use C:\temp (Windows)
     if os.path.exists("/tmp"):

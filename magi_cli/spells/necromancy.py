@@ -3,8 +3,8 @@ import os
 from magi_cli.spells import SANCTUM_PATH 
 
 @click.command()
-@click.argument('file_paths', nargs=-1, required=False)  # Accepts any number of arguments but doesn't use them
-def necromancy(file_paths):
+@click.argument('args', nargs=-1, required=False)  # Accepts any number of arguments but doesn't use them
+def necromancy(args):
     """ 'nc' - Start a session that keeps a memory of deleted files."""
     graveyard_path = os.path.join(SANCTUM_PATH, '.graveyard')
     try:

@@ -15,7 +15,7 @@ def warp():
 
 @warp.command()
 @click.argument('alias', required=False)
-def connect(alias):
+def connect(alias, **kwargs):
     """Connect to a saved SSH session."""
     # Ensure the .circle file exists
     if not os.path.exists(CIRCLE_PATH):

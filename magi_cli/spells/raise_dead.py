@@ -4,12 +4,12 @@ import shutil
 from magi_cli.spells import SANCTUM_PATH  # Import SANCTUM_PATH
 
 @click.command()
-@click.argument('file_paths', nargs=-1, required=False)  # Accepts a variable number of arguments
-def raise_dead(file_paths):
+@click.argument('args', nargs=-1, required=False)  # Accepts a variable number of arguments
+def raise_dead(args):
     """ 'rd' - Restore a spirit from the graveyard."""
     graveyard_path = os.path.join(SANCTUM_PATH, '.graveyard')  # Use SANCTUM_PATH for .graveyard directory
 
-    spirit = file_paths[0] if file_paths else None
+    spirit = args[0] if args else None
 
     if spirit:
         # Handle a specific spirit

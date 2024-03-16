@@ -95,17 +95,17 @@ def cast(input):
 
     elif input[0] in aliases:
         command = aliases[input[0]]
-        ctx = click.get_current_context()  # Define ctx here
+        ctx = click.get_current_context()
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1:])
+            ctx.invoke(command, args=input[1:])
         else:
             ctx.invoke(command)
-
     elif input[0] in cli.commands:
-        ctx = click.get_current_context()  # Define ctx here
+        ctx = click.get_current_context()
         command = cli.commands[input[0]]
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1:])
+            # Ensure the arguments are passed correctly
+            ctx.invoke(command, args=input[1:])
         else:
             ctx.invoke(command)
 
