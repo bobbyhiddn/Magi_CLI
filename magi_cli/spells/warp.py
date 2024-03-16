@@ -10,7 +10,7 @@ CIRCLE_PATH = os.path.join(SANCTUM_PATH, '.circle')
 
 @click.group()
 def warp():
-    """Warp to SSH sessions with ease."""
+    """ 'wp' - Warp to remote SSH sessions with ease."""
     pass
 
 @warp.command()

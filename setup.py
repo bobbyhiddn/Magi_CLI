@@ -19,9 +19,7 @@ setup(
         'gitpython',
         'flask',
         'PyQt5',
-        'setuptools',
-        'getpass',
-        'json'
+        'setuptools'
     ],
     entry_points={
         'console_scripts': [
