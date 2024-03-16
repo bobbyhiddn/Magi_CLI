@@ -47,20 +47,29 @@ def connect_to_host(session):
     ssh_command.append(f"{session['user']}@{session['host']}")
     subprocess.run(ssh_command)
 
-def register_host(alias, sessions):
+def register_host(alias):
     """Register a new SSH session."""
     click.echo("Starting the registration wizard...")
     host = click.prompt("Enter the host IP or hostname")
     user = click.prompt("Enter the username")
     password = None
-    if click.confirm("Do you want to set a password?"):
-        # Use click.prompt with hide_input=True as a fallback for getpass
-        password = click.prompt("Enter the password", hide_input=True)
     key = None
+
+    if click.confirm("Do you want to set a password?"):
+        password = click.prompt("Enter the password", hide_input=True, confirmation_prompt=True)
     if click.confirm("Do you want to set a private key?"):
         key = click.prompt("Enter the private key location")
 
+    # Ensure the .circle file exists
+    if not os.path.exists(CIRCLE_PATH):
+        os.makedirs(os.path.dirname(CIRCLE_PATH), exist_ok=True)
+
     # Add the new session to the .circle file
+    sessions = {}
+    if os.path.exists(CIRCLE_PATH):
+        with open(CIRCLE_PATH, 'r') as f:
+            sessions = json.load(f)
+
     sessions[alias] = {
         "user": user,
         "host": host,
@@ -68,13 +77,11 @@ def register_host(alias, sessions):
         "key": key
     }
 
-    # Ensure the .circle file exists
-    if not os.path.exists(CIRCLE_PATH):
-        os.makedirs(os.path.dirname(CIRCLE_PATH), exist_ok=True)
-
     with open(CIRCLE_PATH, 'w') as f:
         json.dump(sessions, f, indent=2)
+
     click.echo(f"Host '{alias}' registered successfully.")
+
 
 if __name__ == '__main__':
     warp()
