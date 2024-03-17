@@ -17,6 +17,12 @@ def warp(ctx, args):
     if not args:
         click.echo("Available SSH sessions:")
         list_sessions(sessions)
+        selected_session = click.prompt("Select a session number (or press Enter to bypass)", default="")
+        if selected_session.isdigit() and int(selected_session) <= len(sessions):
+            alias = list(sessions.keys())[int(selected_session) - 1]
+            connect_to_host(sessions[alias])
+        else:
+            click.echo("Bypassing session selection.")
         ctx.exit()
 
     alias = args[0]
