@@ -66,9 +66,26 @@ def register_host(alias):
     user = click.prompt("Whisper the name of your alter ego in that realm (Enter the username)")
     
     key = None
-    if click.confirm("Do you possess a talisman to bypass the guardians? (Do you want to set a private key?)"):
-        key = click.prompt("Reveal the talisman's hiding place (Enter the private key location)")
-    
+    if click.confirm("Do you possess a talisman to bypass the guardians? (Do you want to set or generate a private key?)"):
+        key_choice = click.prompt("Press 'G' to generate a new talisman or 'P' to provide the path to an existing one (G/P)", default="G")
+        if key_choice.upper() == 'G':
+            key = os.path.expanduser("~/.ssh/warp_circle.pem")
+            if not os.path.exists(key):
+                click.echo("Generating the talisman...")
+                os.system(f"ssh-keygen -t rsa -b 4096 -f {key} -N ''")
+                click.echo(f"A new talisman has been forged in secrecy: {key}")
+            else:
+                click.echo(f"The talisman already exists: {key}")
+        elif key_choice.upper() == 'P':
+            key = click.prompt("Reveal the talisman's hiding place (Enter the private key location)")
+        else:
+            click.echo("Invalid choice. No talisman will be set.")
+
+        if key:
+            click.echo("Attempting to bind the talisman with the distant realm...")
+            os.system(f"ssh-copy-id -i {key}.pub {user}@{host}")
+            click.echo(f"The talisman has been bound to {user}@{host}.")
+
     click.echo(f"The winds of magic swirl and solidify; a new passage to '{alias}' has been established.")
     return {"user": user, "host": host, "key": key}
 
