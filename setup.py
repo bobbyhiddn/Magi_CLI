@@ -15,7 +15,6 @@ setup(
         'openai',
         'requests',
         'Pillow',
-        'python-dotenv',
         'gitpython',
         'flask',
         'PyQt5',

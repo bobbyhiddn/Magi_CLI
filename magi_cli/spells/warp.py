@@ -22,7 +22,7 @@ def warp(ctx, args):
             alias = list(sessions.keys())[int(selected_session) - 1]
             connect_to_host(sessions[alias])
         else:
-            click.echo("The arcane forces have granted you passage. Bypassing the mystical session selection.")
+            click.echo("Bypassing the mystical session selection.")
         ctx.exit()
 
     alias = args[0]
