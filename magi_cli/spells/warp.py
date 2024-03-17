@@ -2,7 +2,6 @@ import click
 import os
 import subprocess
 import json
-from getpass import getpass
 from magi_cli.spells import SANCTUM_PATH
 
 # Define the path for the .circle file within the SANCTUM_PATH
@@ -26,8 +25,7 @@ def warp(ctx, args):
         connect_to_host(sessions[alias])
     else:
         if click.confirm(f"Host '{alias}' not found. Would you like to register it?"):
-            # Pass 'sessions' as an argument to 'register_host'
-            register_host(alias, sessions)
+            sessions[alias] = register_host(alias)
             save_sessions(sessions)
             click.echo(f"Host '{alias}' registered successfully.")
         else:
@@ -52,39 +50,21 @@ def connect_to_host(session):
     ssh_command = ['ssh']
     if session.get('key'):
         ssh_command += ['-i', session['key']]
-    if session.get('password'):
-        ssh_command += ['-o', 'PasswordAuthentication=yes']
     ssh_command.append(f"{session['user']}@{session['host']}")
     subprocess.run(ssh_command)
 
-def register_host(alias, sessions):
+def register_host(alias):
     """Register a new SSH session."""
     click.echo("Starting the registration wizard...")
     host = click.prompt("Enter the host IP or hostname")
     user = click.prompt("Enter the username")
-    
-    password = None
-    if click.confirm("Do you want to set a password?"):
-        try:
-            # Try to use getpass first
-            password = getpass("Enter the password: ")
-        except (EOFError, KeyboardInterrupt):
-            # Use click.prompt as a fallback
-            password = click.prompt("Enter the password", hide_input=True, confirmation_prompt=True)
     
     key = None
     if click.confirm("Do you want to set a private key?"):
         key = click.prompt("Enter the private key location")
     
     # Update and save the .circle file with the new host information
-    sessions[alias] = {"user": user, "host": host, "password": password, "key": key}
-    if not os.path.exists(CIRCLE_PATH):
-        os.makedirs(os.path.dirname(CIRCLE_PATH), exist_ok=True)
-    
-    with open(CIRCLE_PATH, 'w') as f:
-        json.dump(sessions, f, indent=2)
-    click.echo(f"Host '{alias}' registered successfully.")
-
+    return {"user": user, "host": host, "key": key}
 
 alias = "wp"
 
