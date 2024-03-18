@@ -4,11 +4,11 @@ import fnmatch
 from datetime import datetime
 
 @click.command()
-@click.argument('file_paths', nargs=-1, required=False)  # Use file_paths to accept variable number of arguments
-def divine(file_paths):
+@click.argument('args', nargs=-1, required=False)  # Use args to accept variable number of arguments
+def divine(args):
     """ 'dv' - List the directory contents with detailed information, or find a file anywhere below the root directory, searching through child directories, and echo its path."""
     
-    search_term = file_paths[0] if file_paths else None
+    search_term = args[0] if args else None
 
     if search_term:
         click.echo(f"You cast your senses into the ether, seeking knowledge of the realm...\n")

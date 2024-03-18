@@ -59,7 +59,7 @@ def send_message(message_log):
     if client:
         # Use the OpenAI API to send the message
         response = client.chat.completions.create(
-            model="gpt-4-1106-preview",  # or your desired model
+            model="gpt-4-turbo-preview",  # or your desired model
             messages=message_log,
             max_tokens=1500,
             temperature=0.7,
@@ -72,8 +72,8 @@ def send_message(message_log):
         return "OpenAI API key is not set. Unable to consult the aether for wisdom."
 
 @click.command()
-@click.argument('file_paths', nargs=-1)  # Accepts multiple file paths
-def aether_inquiry(file_paths):
+@click.argument('args', nargs=-1)  # Accepts multiple file paths
+def aether_inquiry(args):
     """ 'ai' - Call upon the arcane intellect of an artificial intelligence to answer your questions and generate spells or Python scripts."""
 
     message_log = [
@@ -111,8 +111,8 @@ def aether_inquiry(file_paths):
                     
 
     # Check if any file paths are provided
-    if file_paths:
-        for file_path in file_paths:
+    if args:
+        for file_path in args:
             if os.path.isdir(file_path):
                 # Ask user if they want to transcribe directory contents
                 transcribe_confirm = input(f"Do you want to transcribe the contents of the directory '{file_path}' to the .aether directory? (yes/no): ")

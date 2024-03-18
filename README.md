@@ -21,11 +21,11 @@ Another goal for cast is to serve as a universal execution command. I despise ha
 
 ##### Tenets
 
-Commands are designed with a few things in mind:
+Spells are designed with a few things in mind:
 
 - Effectiveness - They need to work. Half functioning spells won't be included in a release version.
 - Flavorfulness - They need to feel like magic. They should work in a manner that does not require memorization besides magic words and a target unless a flavorful way to add more features can be devised.
-- Modular - They need to fit into Magi_CLI in a fully functional way. If you can't both cast it with `cast spell target` or `python path/to/spell.py target`, it is not acceptable. Each command should be both executable and castable as both file and command.
+- Modulararity - They need to fit into Magi_CLI in a fully functional way. If you can't both cast it with `cast spell target` or `python path/to/spell.py target`, it is not acceptable. Each command should be both executable and castable as both file and command.
 - Innovative - A spell will not be accepted if it only performs a task that a UNIX command already performs. We're crafting spells here, not reworking old ground.
 - Fun! - They should be enjoyable to use! Keep the debug messages in theme, keep the soul of the project alive!
 
@@ -49,6 +49,14 @@ Commands are designed with a few things in mind:
    - Adding local LLM functionality soon!
 
 9. **Exile** - ('**ex**')Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
+
+10. **Warp**: ('**wp**') Warp to remote SSH sessions with ease. This command allows you to manage and connect to SSH sessions effortlessly. It provides a user-friendly interface to register new SSH sessions, edit existing ones, and quickly connect to them. With Warp, you can:
+   - List all registered SSH sessions
+   - Choose a session to connect to
+   - Add a new SSH session by providing the host, username, and optional private key
+   - Generate a new RSA key pair for authentication or use an existing private key
+   - Delete an existing SSH session and its associated keys
+   - Bypass the session selection and directly connect to a session using its alias
 
 ##### Future Spells
 
@@ -96,11 +104,11 @@ Additional spells, file type support, and arcane features can be added to the CL
 
 #### Spell Improvements
 
-- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. I want spellcraft to be a versatile tool that can be used to accomplish more than just basic tasks without having to go too far into specifics on the users side. I'd like to eventually design a 'recording' system that can remember your next few commands.
+- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. I want spellcraft to be a versatile tool that can be used to accomplish more than just basic tasks without having to go too far into specifics on the users side. I'd like to eventually design a 'recording' system that can remember your last few commands.
 
 - Runecraft: Implement a way to save runes to a tome directory and allow them to be executed from the CLI. Allow runes to be saved as .spell files. Something like that.
 
-- Astral_Realm: We need to figure out if flask is all we need backend wise.
+- Astral_Realm: We need to figure out if flask is all we need backend wise. Also looking into FastUI and FastAPI.
 
 #### General Improvements
 
@@ -115,3 +123,7 @@ Additional spells, file type support, and arcane features can be added to the CL
 2. **MAGI_CLI Sanctum** - This is an IDE for MAGI_CLI that responds to casting spells and creating commands with animations and sound effects. It will have the same goal as the CLI itself, which is to both have fun functionality and to supercharge your terminal experience.
 
 3. **MAGI_CLI VSCode Extension** - This will be an extension that allows you to have the fun and functionality of MAGI_CLI in VSCode. I want to incorporate the animations and sound effects from the Sanctum into this extension.
+
+### Contributing
+
+If you would like to contribute to the project, please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for more information.

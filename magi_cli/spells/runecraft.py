@@ -46,13 +46,13 @@ def create_circular_mask(image):
     return mask
 
 @click.command()
-@click.argument('file_paths', nargs=-1, required=True)  # Accepts multiple file paths
-def runecraft(file_paths):
+@click.argument('args', nargs=-1, required=True)  # Accepts multiple file paths
+def runecraft(args):
     ''' 'rc' - Generate a GUI for a Bash script in the form of an enchanted rune.'''
 
     # Correctly handle the first file path from the list
-    if file_paths:
-        file_path = file_paths[0]
+    if args:
+        file_path = args[0]
         base_filename = os.path.basename(file_path)
     else:
         # Handle the case where no file path is provided

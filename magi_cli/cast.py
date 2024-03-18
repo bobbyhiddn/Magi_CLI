@@ -73,7 +73,7 @@ def execute_spell_file(spell_file):
 
 @click.command()
 @click.argument('input', nargs=-1)
-def cast(input):
+def cast(input, **kwargs):
     input = list(input)  # Convert input into a list to separate command and arguments
 
     # Use SANCTUM_PATH for the .tome directory
@@ -95,19 +95,25 @@ def cast(input):
 
     elif input[0] in aliases:
         command = aliases[input[0]]
-        ctx = click.get_current_context()  # Define ctx here
+        ctx = click.get_current_context()
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1:])
+            ctx.invoke(command, args=input[1:])
         else:
-            ctx.invoke(command)
-
+            if 'alias' in kwargs:
+                ctx.invoke(command, alias=kwargs['alias'])
+            else:
+                ctx.invoke(command)
     elif input[0] in cli.commands:
-        ctx = click.get_current_context()  # Define ctx here
+        ctx = click.get_current_context()
         command = cli.commands[input[0]]
         if len(input) > 1:
-            ctx.invoke(command, file_paths=input[1:])
+            # Ensure the arguments are passed correctly
+            ctx.invoke(command, args=input[1:])
         else:
-            ctx.invoke(command)
+            if 'alias' in kwargs:
+                ctx.invoke(command, alias=kwargs['alias'])
+            else:
+                ctx.invoke(command)
 
     else:
         # Check if the input is a file and execute accordingly

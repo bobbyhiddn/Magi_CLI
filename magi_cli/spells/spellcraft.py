@@ -5,15 +5,15 @@ from magi_cli.spells import SANCTUM_PATH  # Import SANCTUM_PATH
 @click.command()
 @click.argument('num_commands', type=int, required=False)
 @click.argument('spell_file', required=False)
-@click.argument('file_paths', nargs=-1, required=False)
-def spellcraft(num_commands=None, spell_file=None, file_paths=None):
+@click.argument('args', nargs=-1, required=False)
+def spellcraft(num_commands=None, spell_file=None, args=None):
     """ 'sc' - Create a macro spell and store it in .tome."""
     # Check if num_commands and spell_file are provided directly
     if num_commands is None or spell_file is None:
-        if file_paths and len(file_paths) >= 1:
+        if args and len(args) >= 1:
             try:
-                num_commands = int(file_paths[0])
-                spell_file = file_paths[1]
+                num_commands = int(args[0])
+                spell_file = args[1]
             except (ValueError, IndexError):
                 click.echo("Error: Invalid arguments provided to spellcraft. Example: `cast sc 3 test_spell`")
                 return
