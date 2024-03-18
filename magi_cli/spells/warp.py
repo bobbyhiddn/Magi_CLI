@@ -258,5 +258,8 @@ def connect(alias):
 
 alias = "wp"
 
-if __name__ == '__main__':
+def main():
     warp()
+
+if __name__ == '__main__':
+    main()

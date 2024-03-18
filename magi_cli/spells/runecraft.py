@@ -1,21 +1,29 @@
 import os
 import requests
-from PIL import ImageDraw, Image, ImageOps
 import subprocess
-from io import BytesIO
-from openai import OpenAI
+import sys
 import click
 import pkg_resources
 from magi_cli.spells import SANCTUM_PATH 
+from PIL import ImageDraw, Image, ImageOps
+from io import BytesIO
+from openai import OpenAI
 
 DEFAULT_IMAGE_PATH = pkg_resources.resource_filename('magi_cli.artifacts', 'Rune.png')
 
-# Conditional instantiation of the OpenAI client
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if OPENAI_API_KEY:
-    client = OpenAI(api_key=OPENAI_API_KEY)
+# Load the Openai API key
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    print("If you would like to inquire the aether or generate runes, please set the OPENAI_API_KEY environment variable.")
+    sys.exit(1)
 else:
-    client = None
+    # Set the API key for the OpenAI package
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    if OPENAI_API_KEY:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+    else:
+        client = None
 
 # Function to generate an image using DALL-E API
 def generate_image(prompt):
@@ -122,6 +130,7 @@ import signal
 from PyQt5.QtGui import QPixmap, QColor
 from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QApplication, QLabel, QVBoxLayout, QWidget, QPushButton
 from PyQt5.QtCore import Qt
+import sys
 
 # Ignore SIGINT
 signal.signal(signal.SIGINT, signal.SIG_IGN)
@@ -241,5 +250,8 @@ sys.exit(app.exec_())
 
 alias = "rc"
 
-if __name__ == '__main__':
+def main():
     runecraft()
+
+if __name__ == '__main__':
+    main()

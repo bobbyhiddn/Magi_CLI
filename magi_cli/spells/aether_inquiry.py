@@ -1,9 +1,10 @@
 import click
 import re
-from openai import OpenAI
 import os
+import sys
 from datetime import datetime
 from magi_cli.spells import SANCTUM_PATH
+from openai import OpenAI
 
 def is_readable(file_path):
     """Check if a file is readable as text."""
@@ -46,13 +47,21 @@ def read_directory(path, prefix="", md_file_name="directory_contents"):
                 md_file.write(file_line)
     return contents
 
-# Conditional instantiation of the OpenAI client
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
-if OPENAI_API_KEY:
-    client = OpenAI(api_key=OPENAI_API_KEY)
-else:
-    client = None
+# This can also be done by setting the OPENAI_API_KEY environment variable manually.
 
+# Load the Openai API key
+api_key = os.getenv("OPENAI_API_KEY")
+
+if not api_key:
+    print("If you would like to inquire the aether or generate runes, please set the OPENAI_API_KEY environment variable.")
+    sys.exit(1)
+else:
+    # Set the API key for the OpenAI package
+    OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+    if OPENAI_API_KEY:
+        client = OpenAI(api_key=OPENAI_API_KEY)
+    else:
+        client = None
 
 def send_message(message_log):
     # Check if the OpenAI client is instantiated
@@ -215,5 +224,8 @@ def aether_inquiry(args):
 
 alias = "ai"
 
-if __name__ == '__main__':
+def main():
     aether_inquiry()
+
+if __name__ == '__main__':
+    main()

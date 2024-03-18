@@ -40,5 +40,8 @@ def raise_dead(args):
 
 alias = "rd"
 
-if __name__ == '__main__':
+def main():
     raise_dead()
+
+if __name__ == '__main__':
+    main()

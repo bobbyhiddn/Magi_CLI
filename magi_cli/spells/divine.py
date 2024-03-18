@@ -31,5 +31,8 @@ def divine(args):
 
 alias = "dv"
 
-if __name__ == '__main__':
+def main():
     divine()
+
+if __name__ == '__main__':
+    main()

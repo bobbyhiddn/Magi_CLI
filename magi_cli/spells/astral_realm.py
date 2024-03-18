@@ -89,5 +89,8 @@ def file(file_path):
     
 alias = "ar"
 
-if __name__ == '__main__':
+def main():
     astral_realm()
+
+if __name__ == '__main__':
+    main()
