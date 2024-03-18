@@ -50,6 +50,14 @@ Commands are designed with a few things in mind:
 
 9. **Exile** - ('**ex**')Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
 
+10. **Warp**: ('**wp**') Warp to remote SSH sessions with ease. This command allows you to manage and connect to SSH sessions effortlessly. It provides a user-friendly interface to register new SSH sessions, edit existing ones, and quickly connect to them. With Warp, you can:
+   - List all registered SSH sessions
+   - Choose a session to connect to
+   - Add a new SSH session by providing the host, username, and optional private key
+   - Generate a new RSA key pair for authentication or use an existing private key
+   - Delete an existing SSH session and its associated keys
+   - Bypass the session selection and directly connect to a session using its alias
+
 ##### Future Spells
 
 1. **Unseen_Servant**: ('**uss**') Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
@@ -96,11 +104,11 @@ Additional spells, file type support, and arcane features can be added to the CL
 
 #### Spell Improvements
 
-- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. I want spellcraft to be a versatile tool that can be used to accomplish more than just basic tasks without having to go too far into specifics on the users side. I'd like to eventually design a 'recording' system that can remember your next few commands.
+- Spellcraft: Allow the use of arcane variables in '.spell' scrolls for more dynamic spell weaving. I want spellcraft to be a versatile tool that can be used to accomplish more than just basic tasks without having to go too far into specifics on the users side. I'd like to eventually design a 'recording' system that can remember your last few commands.
 
 - Runecraft: Implement a way to save runes to a tome directory and allow them to be executed from the CLI. Allow runes to be saved as .spell files. Something like that.
 
-- Astral_Realm: We need to figure out if flask is all we need backend wise.
+- Astral_Realm: We need to figure out if flask is all we need backend wise. Also looking into FastUI and FastAPI.
 
 #### General Improvements
 

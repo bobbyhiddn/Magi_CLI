@@ -3,7 +3,6 @@ import click
 import paramiko
 import json
 import subprocess
-import time
 from threading import Lock
 from cryptography.hazmat.primitives import serialization as crypto_serialization
 from cryptography.hazmat.primitives.asymmetric import rsa
@@ -30,17 +29,24 @@ def warp(ctx, args):
     while True:
         if not alias:
             list_sessions(sessions)
-            selected_session = click.prompt("Choose a session number or 'E' to edit the circle", default="")
+            selected_session = click.prompt("Choose a session number, 'E' to edit the circle, 'A' to add a session, or 'Q' to cease the spell.", default="")
             if selected_session.upper() == 'E':
                 result = delete_session(sessions)
                 if result == 'WARP':
                     continue
                 return
+            elif selected_session.upper() == 'A':
+                alias = click.prompt("Enter the alias for the new session")
+                sessions[alias] = register_host(alias, sessions)
+                save_sessions(sessions)
+                return
             elif selected_session.isdigit() and int(selected_session) <= len(sessions):
                 alias = list(sessions.keys())[int(selected_session) - 1]
+            elif selected_session.upper() == 'Q':
+                break
             else:
                 click.echo("Bypassing the mystical session selection.")
-                continue
+                return
 
         if alias in sessions:
             click.echo(f"Warping to {alias}...")
@@ -51,7 +57,7 @@ def warp(ctx, args):
                 save_sessions(sessions)
             else:
                 click.echo("The arcane energies remain undisturbed. Operation cancelled.")
-        ctx.exit()
+        return
 
 def generate_rsa_keys(alias):
     private_key_path = os.path.join(KEY_PATH, f'{alias}.pem')
@@ -85,25 +91,58 @@ def generate_rsa_keys(alias):
 
     return private_key_path
 
-# Function to append public key to authorized_keys on the server
-def append_public_key_to_authorized_keys(hostname, username, private_key_path):
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    ssh.load_system_host_keys()
-
+def generate_public_key_from_private_key(private_key_path):
+    private_key_path = os.path.expanduser(private_key_path)
     try:
-        ssh.connect(hostname=hostname, username=username, key_filename=private_key_path)
-        click.echo("Connected to host to append public key.")
+        with open(private_key_path, 'rb') as key_file:
+            private_key = crypto_serialization.load_pem_private_key(
+                key_file.read(),
+                password=None,
+                backend=crypto_default_backend()
+            )
+    except FileNotFoundError as e:
+        click.echo(f"Error loading private key: {e}")
+        click.echo(f"Please ensure that the private key file exists at the specified location: {private_key_path}")
+        return None
+    except ValueError as e:
+        click.echo(f"Error loading private key: {e}")
+        click.echo("Please ensure that the private key file is in the correct format (PEM) and is not encrypted.")
+        return None
+    
+    public_key = private_key.public_key()
+    ssh_public_key = public_key.public_bytes(
+        crypto_serialization.Encoding.OpenSSH,
+        crypto_serialization.PublicFormat.OpenSSH
+    )
+    
+    return ssh_public_key.decode('utf-8')
+
+# Function to append the public key to the remote server's authorized_keys file
+def append_public_key_to_authorized_keys(hostname, username, private_key_path):
+    if private_key_path.startswith('~'):
+        private_key_path = os.path.expanduser(private_key_path)
+    
+    public_key = generate_public_key_from_private_key(private_key_path)
+    
+    if public_key is None:
+        return
+    
+    try:
+        click.echo("Attempting to append the public key to the remote server's authorized_keys file...")
+        ssh_command = f'ssh {username}@{hostname} "mkdir -p ~/.ssh && echo \'{public_key}\' >> ~/.ssh/authorized_keys"'
+        subprocess.run(ssh_command, shell=True, check=True)
         
-        public_key_path = f"{private_key_path}.pub"
-        with open(public_key_path, 'r') as public_key_file:
-            public_key = public_key_file.read()
-            ssh.exec_command(f'echo "{public_key}" >> ~/.ssh/authorized_keys')
-            click.echo("Public key appended to remote authorized_keys.")
-    except Exception as e:
+        click.echo("Public key appended to the remote server successfully.")
+    except subprocess.CalledProcessError as e:
         click.echo(f"Error appending public key: {e}")
-    finally:
-        ssh.close()
+        password = click.prompt(f"Enter the password for {username}@{hostname}", hide_input=True)
+        try:
+            ssh_command = f'sshpass -p "{password}" ssh {username}@{hostname} "mkdir -p ~/.ssh && echo \'{public_key}\' >> ~/.ssh/authorized_keys"'
+            subprocess.run(ssh_command, shell=True, check=True)
+            
+            click.echo("Public key appended to the remote server successfully using the provided password.")
+        except subprocess.CalledProcessError as e:
+            click.echo(f"Error appending public key using the provided password: {e}")
 
 # Load existing sessions from CIRCLE_PATH
 def load_sessions():
@@ -124,7 +163,7 @@ def list_sessions(sessions):
         else:
             click.echo(f"{i}. {alias}: No details available")
 
-# Delete a session
+# Delete a session and its associated keys
 def delete_session(sessions):
     while True:  # Keep showing the sessions until the user decides to quit
         list_sessions(sessions)
@@ -137,10 +176,21 @@ def delete_session(sessions):
             session_alias = list(sessions.keys())[int(selected_option) - 1]
             del sessions[session_alias]
             click.echo(f"The arcane link to '{session_alias}' has been severed.")
+            
+            # Delete the associated private and public keys
+            private_key_path = os.path.join(KEY_PATH, f'{session_alias}.pem')
+            public_key_path = f"{private_key_path}.pub"
+            try:
+                os.remove(private_key_path)
+                os.remove(public_key_path)
+                click.echo(f"The talismans associated with '{session_alias}' have been destroyed.")
+            except FileNotFoundError:
+                click.echo(f"No talismans found for '{session_alias}'.")
+            
             # Save the updated sessions back to the file
             save_sessions(sessions)
         else:
-            click.echo("Invalid selection. Please choose a valid session number or 'Q' to quit.")
+            click.echo("Invalid selection. Please choose a valid session number or 'W' to return to warp selection.")
 
 def register_host(alias, sessions):
     """Register a new SSH session with arcane energies."""
@@ -148,17 +198,20 @@ def register_host(alias, sessions):
     host = click.prompt("Envision the realm's address (Enter the host IP or hostname)")
     user = click.prompt("Whisper the name of your alter ego in that realm (Enter the username)")
     
-    key_choice = click.prompt("Do you possess a talisman to bypass the guardians? (Do you want to set or generate a private key?) [G/P]", default="G", show_default=False)
+    key_choice = click.prompt("Do you possess a talisman to bypass the guardians? (Do you want to set or generate a private key?) [G/P/N]", default="G", show_default=False)
     
     key = None
     if key_choice.upper() == 'G':
         key = generate_rsa_keys(alias)
-        append_public_key_to_authorized_keys(host, user, key)
-        click.echo("Attempting to bind the talisman with the distant realm...")
-        # Attempt to bind the talisman with the distant realm code goes here
-        click.echo(f"The talisman has been bound to {user}@{host}.")
+        if key is not None:
+            append_public_key_to_authorized_keys(host, user, key)
     elif key_choice.upper() == 'P':
         key = click.prompt("Reveal the talisman's hiding place (Enter the private key location)")
+        public_key = generate_public_key_from_private_key(key)
+        if public_key is not None:
+            append_public_key_to_authorized_keys(host, user, key)
+        else:
+            click.echo("The arcane forces are puzzled by your talisman. The public key could not be generated.")
     else:
         click.echo("The arcane forces are puzzled by your choice. No talisman will be set.")
 
@@ -167,18 +220,13 @@ def register_host(alias, sessions):
     save_sessions(sessions)
     
     click.echo(f"The winds of magic swirl and solidify; a new passage to '{alias}' has been established.")
+    return {"user": user, "host": host, "key": key}
 
 def save_sessions(sessions):
     with circle_lock:
         os.makedirs(os.path.dirname(CIRCLE_PATH), exist_ok=True)
-        with open(CIRCLE_PATH, 'w') as f:
+        with open(CIRCLE_PATH, 'w', encoding='utf-8') as f:
             json.dump(sessions, f, indent=2)
-            click.echo(f"Host '{alias}' registered successfully.")
-
-        # Debugging: Verify the contents right after writing and sleeping
-        with open(CIRCLE_PATH, 'r', encoding='utf-8') as f:
-            file_contents = f.read()
-        print(f"File contents immediately after saving and sleeping: {file_contents}")  # Debug line
 
 def connect_to_host(session):
     ssh_command = ['ssh']
@@ -205,9 +253,6 @@ def connect(alias):
         else:
             ssh.connect(session['host'], username=session['user'])
         click.echo(f"Connected to {alias}.")
-        # This part is for demonstration. You might want to implement a full shell or another interaction.
-        stdin, stdout, stderr = ssh.exec_command('whoami')
-        click.echo(stdout.read().decode())
     finally:
         ssh.close()
 
