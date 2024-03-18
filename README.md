@@ -21,11 +21,11 @@ Another goal for cast is to serve as a universal execution command. I despise ha
 
 ##### Tenets
 
-Commands are designed with a few things in mind:
+Spells are designed with a few things in mind:
 
 - Effectiveness - They need to work. Half functioning spells won't be included in a release version.
 - Flavorfulness - They need to feel like magic. They should work in a manner that does not require memorization besides magic words and a target unless a flavorful way to add more features can be devised.
-- Modular - They need to fit into Magi_CLI in a fully functional way. If you can't both cast it with `cast spell target` or `python path/to/spell.py target`, it is not acceptable. Each command should be both executable and castable as both file and command.
+- Modulararity - They need to fit into Magi_CLI in a fully functional way. If you can't both cast it with `cast spell target` or `python path/to/spell.py target`, it is not acceptable. Each command should be both executable and castable as both file and command.
 - Innovative - A spell will not be accepted if it only performs a task that a UNIX command already performs. We're crafting spells here, not reworking old ground.
 - Fun! - They should be enjoyable to use! Keep the debug messages in theme, keep the soul of the project alive!
 
@@ -123,3 +123,7 @@ Additional spells, file type support, and arcane features can be added to the CL
 2. **MAGI_CLI Sanctum** - This is an IDE for MAGI_CLI that responds to casting spells and creating commands with animations and sound effects. It will have the same goal as the CLI itself, which is to both have fun functionality and to supercharge your terminal experience.
 
 3. **MAGI_CLI VSCode Extension** - This will be an extension that allows you to have the fun and functionality of MAGI_CLI in VSCode. I want to incorporate the animations and sound effects from the Sanctum into this extension.
+
+### Contributing
+
+If you would like to contribute to the project, please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for more information.
