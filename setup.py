@@ -18,7 +18,9 @@ setup(
         'gitpython',
         'flask',
         'PyQt5',
-        'setuptools'
+        'setuptools',
+        'paramiko',
+        'cryptography'
     ],
     entry_points={
         'console_scripts': [
