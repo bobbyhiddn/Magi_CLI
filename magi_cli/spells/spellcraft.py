@@ -50,5 +50,8 @@ def spellcraft(num_commands=None, spell_file=None, args=None):
 
 alias = "sc"
 
-if __name__ == '__main__':
+def main():
     spellcraft()
+
+if __name__ == '__main__':
+    main()

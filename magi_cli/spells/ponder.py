@@ -59,5 +59,8 @@ def ponder(args):
 
 alias = "pd"
 
-if __name__ == '__main__':
+def main():
     ponder()
+
+if __name__ == '__main__':
+    main()

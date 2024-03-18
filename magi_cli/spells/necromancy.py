@@ -16,5 +16,8 @@ def necromancy(args):
 
 alias = "nc"
 
-if __name__ == '__main__':
+def main():
     necromancy()
+
+if __name__ == '__main__':
+    main()
