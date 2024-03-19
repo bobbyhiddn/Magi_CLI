@@ -42,5 +42,8 @@ def fireball(args):
 
 alias = "fb"
 
-if __name__ == '__main__':
-    fireball()
+def main():
+    fireball() 
+
+if __name__ == "__main__":
+    main()

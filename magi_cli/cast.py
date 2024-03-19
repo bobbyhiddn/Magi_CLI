@@ -4,11 +4,9 @@ import click # type: ignore
 import subprocess
 import sys
 import os
-import openai # type: ignore
 import glob
+import cProfile
 from magi_cli.spells import commands_list, aliases, SANCTUM_PATH
-import warnings
-
 
 @click.group()
 @click.pass_context
@@ -18,22 +16,6 @@ def cli(ctx):
 
 for command in commands_list:
     cli.add_command(command)
-
-# This can also be done by setting the OPENAI_API_KEY environment variable manually.
-
-# Load the Openai API key
-api_key = os.getenv("OPENAI_API_KEY")
-
-if not api_key:
-    print("If you would like to inquire the aether or generate runes, please set the OPENAI_API_KEY environment variable.")
-else:
-    # Set the API key for the OpenAI package
-    openai.api_key = api_key
-# Load the defauit .tome directory path
-tome_path = os.getenv("TOME_PATH")
-
-# Set the API key for the OpenAI package
-openai.api_key = api_key
 
 # Non-click functions
 
@@ -89,10 +71,6 @@ def cast(input, **kwargs):
         for file in glob.glob(f"{tome_path}/*.spell"):
             print(f"- {os.path.basename(file)}")
 
-        print("\nAvailable aliases:")
-        for alias, command in aliases.items():
-            print(f"- {alias}: {command.name}")
-
     elif input[0] in aliases:
         command = aliases[input[0]]
         ctx = click.get_current_context()
@@ -129,5 +107,8 @@ def cast(input, **kwargs):
         else:
             print(f"Error: Command or file '{input[0]}' not found.")
 
-if __name__ == "__main__":
+def main():
     cast()
+
+if __name__ == "__main__":
+    main()

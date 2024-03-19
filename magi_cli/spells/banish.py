@@ -28,5 +28,8 @@ def banish(args):
 
 alias = "bn"
 
-if __name__ == '__main__':
+def main():
     banish()
+
+if __name__ == '__main__':
+    main()
