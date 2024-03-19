@@ -56,7 +56,7 @@ Spells are designed with a few things in mind:
    - Add a new SSH session by providing the host, username, and optional private key
    - Generate a new RSA key pair for authentication or use an existing private key
    - Delete an existing SSH session and its associated keys
-   - Bypass the session selection and directly connect to a session using its alias
+   - Directly connect to a session using its alias
 
 ##### Future Spells
 
