@@ -81,6 +81,7 @@ def generate_rsa_keys(alias):
 
         with open(private_key_path, 'wb') as f:
             f.write(private_key)
+        os.chmod(private_key_path, 0o600)  # Set permissions to 0600
 
         with open(public_key_path, 'wb') as f:
             f.write(public_key)
