@@ -48,7 +48,7 @@ Spells are designed with a few things in mind:
 8. **Aether_Inquiry**: ('**ai**') Seek answers from an AI oracle like GPT-4. This will default to calling the GPT-4 API. This command will allow you to generate code to .spell files or ask questions about code, files, or even entire folders. If you give it a file argument, it will read the file provided and allow you to discuss it. If you don't provide a file, it will default to discussing code and will generate code for you to use in a .spell, .py, .bash, or .txt file by saying `scribe` during the conversation. If you provide a folder, it will offer to transcribe the contents into one file in a .aether directory and allow you to converse with the contents of the entire folder! It also gives you the option to save the conversation to a markdown file and pick it up at a later date by typing `quit` during the conversation. 
    - Adding local LLM functionality soon!
 
-9. **Exile** - ('**ex**')Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
+9. **Exile**: ('**ex**') Banish a file or directory to the /tmp or C:\temp directory in a realm called .exile. This allows for the removal of a file from your root directory without getting rid of it completely.
 
 10. **Warp**: ('**wp**') Warp to remote SSH sessions with ease. This command allows you to manage and connect to SSH sessions effortlessly. It provides a user-friendly interface to register new SSH sessions, edit existing ones, and quickly connect to them. With Warp, you can:
    - List all registered SSH sessions
@@ -57,6 +57,8 @@ Spells are designed with a few things in mind:
    - Generate a new RSA key pair for authentication or use an existing private key
    - Delete an existing SSH session and its associated keys
    - Directly connect to a session using its alias
+
+11. **Scribe**: ('**sb**') Transcribe the contents of a file or directory into markdown format. This spell captures the essence of your chosen realm, preserving its knowledge in a format easily understood by both mortal and magical beings. You can choose to include or exclude .git directories, and decide whether to etch your transcriptions into the aether (.aether folder in your sanctum) or keep them in the mortal realm (current directory).
 
 ##### Future Spells
 
