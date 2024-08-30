@@ -68,9 +68,9 @@ def send_message(message_log):
     if client:
         # Use the OpenAI API to send the message
         response = client.chat.completions.create(
-            model="gpt-4-turbo-preview",  # or your desired model
+            model="chatgpt-4o-latest",  # or your desired model
             messages=message_log,
-            max_tokens=1500,
+            max_tokens=5000,
             temperature=0.7,
         )
 
