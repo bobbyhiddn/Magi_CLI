@@ -39,7 +39,7 @@ def read_directory(path, prefix="", ignore_git=True):
 @click.argument('args', nargs=-1)
 @click.option('--include-git', is_flag=True, help='Include .git directory in transcription')
 def scribe(args, include_git):
-    """'sb' - Transcribe the contents of a file or directory into markdown."""
+    """'scb' - Transcribe the contents of a file or directory into markdown."""
     click.echo("Channeling the arcane energies to transcribe your chosen realm...")
 
     if not args:
@@ -81,7 +81,7 @@ def scribe(args, include_git):
 
     click.echo(f"The transcription has been etched into {output_path}. The arcane knowledge is now at your fingertips!")
 
-alias = "sb"
+alias = "scb"
 
 def main():
     scribe()
