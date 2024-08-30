@@ -20,7 +20,8 @@ setup(
         'PyQt5',
         'setuptools',
         'paramiko',
-        'cryptography'
+        'cryptography',
+        'markdown'
     ],
     entry_points={
         'console_scripts': [
