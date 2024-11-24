@@ -60,6 +60,13 @@ Spells are designed with a few things in mind:
 
 11. **Scribe**: ('**sb**') Transcribe the contents of a file or directory into markdown format. This spell captures the essence of your chosen realm, preserving its knowledge in a format easily understood by both mortal and magical beings. You can choose to include or exclude .git directories, and decide whether to etch your transcriptions into the aether (.aether folder in your sanctum) or keep them in the mortal realm (current directory).
 
+12. **Pagecraft**: ('**pgc**') Transform web pages into markdown documents through aether inquiry (AI). This spell fetches content from a URL, uses AI to convert it into well-formatted markdown, and saves it locally. Features include:
+   - Intelligent content extraction and formatting
+   - Multiple review and improvement passes
+   - AI-generated filenames
+   - Configurable save location via SCRAPE_ARCHIVE_PATH
+   - Quality rating and final review
+
 ##### Future Spells
 
 1. **Unseen_Servant**: ('**uss**') Enlist an ethereal ally to cast spells at regular intervals. Can invoke any '.spell' scroll on a schedule. This command schedules a spell to be cast on a regular basis, allowing you to automate tasks by running any '.spell' file on a schedule. (WIP)
