@@ -6,21 +6,14 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='magi_cli_pypi',
-    version='0.1.8',  # Make sure to increment this if you are republishing
+    version='0.2.0',  # Make sure to increment this if you are republishing
     packages=find_packages(),
     package_data={'magi_cli': ['artifacts/*.png']},
     include_package_data=True,
     install_requires=[
         'Click',
-        'openai',
         'requests',
-        'Pillow',
-        'gitpython',
-        'flask',
-        'PyQt5',
         'setuptools',
-        'paramiko',
-        'cryptography',
         'markdown'
     ],
     entry_points={
@@ -39,5 +32,5 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.9',
 )
