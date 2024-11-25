@@ -1,9 +1,10 @@
 .env
-**/build
-**/__pycache__
-**/magi_cli_pypi.egg-info
-**/magi_cli.egg-info
+**/build/
+**/__pycache__/
+**/magi_cli_pypi.egg-info/
+**/magi_cli.egg-info/
 **/magi_cli.zip
+.gitignore
 .aether
 .runes
 .tome
