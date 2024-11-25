@@ -6,7 +6,10 @@ import os
 import sys
 import glob
 import requests
-from typing import Optional, Dict, Any, Tuple
+import subprocess
+import ast
+import hashlib
+from typing import Optional, Dict, Any, Tuple, List
 from magi_cli.spells import SANCTUM_PATH
 from pathlib import Path
 
@@ -39,32 +42,80 @@ class SpellRegistry:
             click.echo(f"Failed to contact the chamber: {e}")
             return None
 
-    def fetch_spell(self, spell_name: str) -> Optional[Tuple[str, str]]:
+    def fetch_spell(self, spell_name: str) -> Optional[Tuple[str, str, List[str]]]:
         """
         Fetch a specific spell from the chamber.
-        Returns tuple of (content, hash) if successful, None if failed.
+        Returns tuple of (content, hash, requirements) if successful, None if failed.
         """
         try:
-            response = requests.get(f"{self.chamber_url}/spells/{spell_name}")
+            response = requests.get(f"{self.chamber_url}/spells/{spell_name}.py")
             response.raise_for_status()
             content = response.text
-            
+
             # Get hash from manifest
             manifest = self.fetch_spell_manifest()
             if manifest and spell_name in manifest.get("spells", {}):
                 spell_hash = manifest["spells"][spell_name]["hash"]
             else:
-                import hashlib
                 spell_hash = hashlib.sha256(content.encode()).hexdigest()
-            
-            return content, spell_hash
+
+            # Extract requirements from the spell content
+            requirements = self.extract_requirements(content)
+
+            return content, spell_hash, requirements
         except requests.RequestException as e:
             click.echo(f"Failed to fetch spell {spell_name}: {e}")
             return None
 
-    def install_spell(self, spell_name: str, content: str) -> bool:
+    def extract_requirements(self, spell_script_content: str) -> List[str]:
+        """Extract the __requires__ variable from the spell script content."""
+        try:
+            node = ast.parse(spell_script_content)
+        except SyntaxError as e:
+            click.echo(f"Syntax error in the spell script: {e}")
+            return []
+
+        requirements = []
+
+        for stmt in node.body:
+            if isinstance(stmt, ast.Assign):
+                for target in stmt.targets:
+                    if isinstance(target, ast.Name) and target.id == '__requires__':
+                        if isinstance(stmt.value, (ast.List, ast.Tuple)):
+                            requirements = [ast.literal_eval(elt) for elt in stmt.value.elts]
+                            return requirements
+                        elif isinstance(stmt.value, ast.Str):
+                            requirements = [stmt.value.s]
+                            return requirements
+                        else:
+                            click.echo("Invalid format for __requires__ in the spell script.")
+                            return []
+        return []
+
+    def install_requirements(self, requirements: List[str]) -> bool:
+        """Install the required dependencies for the spell."""
+        try:
+            click.echo(f"Installing spell dependencies: {requirements}")
+            subprocess.check_call([sys.executable, '-m', 'pip', 'install', *requirements])
+            return True
+        except subprocess.CalledProcessError as e:
+            click.echo(f"Failed to install dependencies: {e}")
+            return False
+
+    def install_spell(self, spell_name: str, content: str, requirements: List[str]) -> bool:
         """Install a spell directly to magi_cli's spells directory and update RECORD."""
         try:
+            # Install dependencies if any
+            if requirements:
+                click.echo(f"\nSpell '{spell_name}' requires the following packages: {requirements}")
+                consent = click.prompt("Do you want to proceed with installing these dependencies? (y/n)", default='y')
+                if consent.lower() != 'y':
+                    click.echo("Aborting spell installation.")
+                    return False
+                if not self.install_requirements(requirements):
+                    click.echo("Failed to install spell dependencies. Aborting spell installation.")
+                    return False
+
             # Save to spells directory
             spell_path = os.path.join(self.spells_dir, f"{spell_name}.py")
             with open(spell_path, 'w') as f:
@@ -74,7 +125,7 @@ class SpellRegistry:
             site_packages = os.path.dirname(os.path.dirname(self.spells_dir))
             dist_info_pattern = os.path.join(site_packages, "magi_cli_pypi-*.dist-info")
             dist_info_dirs = glob.glob(dist_info_pattern)
-            
+
             if dist_info_dirs:
                 record_path = os.path.join(dist_info_dirs[0], "RECORD")
                 if os.path.exists(record_path):
@@ -89,7 +140,7 @@ class SpellRegistry:
                     # Write updated records
                     with open(record_path, 'w') as f:
                         f.writelines(records)
-                    
+
             click.echo(f"\nThe arcane knowledge flows into your mind...")
             click.echo(f"You have learned the '{spell_name}' spell!")
             click.echo(f"Cast it with: cast {spell_name}")
@@ -169,7 +220,7 @@ class SpellRegistry:
         for spell_name, spell_info in spells.items():
             local_path = os.path.join(self.orb_dir, f"{spell_name}.spell")
             remote_hash = spell_info.get("hash")
-            
+
             # Check if we need to update the spell
             needs_update = True
             if os.path.exists(local_path):
@@ -182,7 +233,7 @@ class SpellRegistry:
             if needs_update:
                 result = self.fetch_spell(spell_name)
                 if result:
-                    content, _ = result
+                    content, _, _ = result
                     # Save to orb
                     with open(local_path, 'w') as f:
                         f.write(content)
@@ -223,8 +274,8 @@ class SpellRegistry:
                 for spell_name in missing_spells:
                     result = self.fetch_spell(spell_name)
                     if result:
-                        content, _ = result
-                        self.install_spell(spell_name, content)
+                        content, _, requirements = result
+                        self.install_spell(spell_name, content, requirements)
                     else:
                         click.echo(f"Failed to relearn '{spell_name}'.")
             else:
@@ -277,7 +328,6 @@ class SpellRegistry:
 
     def _calculate_hash(self, content: str) -> str:
         """Calculate hash of spell content for comparison."""
-        import hashlib
         return hashlib.sha256(content.encode()).hexdigest()
 
 @click.command()
@@ -286,7 +336,7 @@ class SpellRegistry:
 def ponder(args, archive):
     """'pd' - Ponder your .orb and the Chamber to gain insight into available spells both locally and in the astral plane."""
     registry = SpellRegistry()
-    
+
     if not args:
         # Interactive mode
         click.echo("You ponder the orb and gaze into the distant chamber...")
@@ -309,15 +359,15 @@ def ponder(args, archive):
                 for spell_name in missing_spells:
                     result = registry.fetch_spell(spell_name)
                     if result:
-                        content, _ = result
-                        registry.install_spell(spell_name, content)
+                        content, _, requirements = result
+                        registry.install_spell(spell_name, content, requirements)
                     else:
                         click.echo(f"Failed to relearn '{spell_name}'.")
             else:
                 click.echo("You decide to keep the knowledge latent within your orb.")
 
         spell_name = click.prompt("\nWhich spell would you like to ponder? (or 'sync' to synchronize with chamber)", type=str)
-        
+
         if spell_name.lower() == 'sync':
             click.echo("Initiating mystical synchronization...")
             registry.sync_spells()
@@ -338,13 +388,15 @@ def ponder(args, archive):
         if os.path.exists(local_path):
             with open(local_path, 'r') as f:
                 content = f.read()
+            # Extract requirements from the local content
+            requirements = registry.extract_requirements(content)
             if not archive and click.confirm("\nYour orb resonates with this knowledge. Would you like to master this spell?"):
-                registry.install_spell(spell_name, content)
+                registry.install_spell(spell_name, content, requirements)
         else:
             # Try remote
             result = registry.fetch_spell(spell_name)
             if result:
-                content, spell_hash = result
+                content, spell_hash, requirements = result
                 # Fetch description from manifest
                 manifest = registry.fetch_spell_manifest()
                 description = manifest.get("spells", {}).get(spell_name, {}).get("description", "")
@@ -353,12 +405,12 @@ def ponder(args, archive):
                         registry.save_to_orb(spell_name, content, description)
                 else:
                     click.echo("\nYou begin to meditate on the ancient knowledge...")
-                    if registry.install_spell(spell_name, content):
+                    if registry.install_spell(spell_name, content, requirements):
                         # Also save to orb for reference
                         registry.save_to_orb(spell_name, content, description)
             else:
                 click.echo(f"\nThe mysteries of '{spell_name}' remain hidden from both your orb and the distant chamber.")
-    
+
     else:
         # Direct spell lookup/install mode
         spell_name = args[0]
@@ -372,9 +424,9 @@ def ponder(args, archive):
             return
 
         result = registry.fetch_spell(spell_name)
-        
+
         if result:
-            content, spell_hash = result
+            content, spell_hash, requirements = result
             # Fetch description from manifest
             manifest = registry.fetch_spell_manifest()
             description = manifest.get("spells", {}).get(spell_name, {}).get("description", "")
@@ -382,7 +434,7 @@ def ponder(args, archive):
                 registry.save_to_orb(spell_name, content, description)
             else:
                 click.echo("\nYou begin to meditate on the ancient knowledge...")
-                if registry.install_spell(spell_name, content):
+                if registry.install_spell(spell_name, content, requirements):
                     # Also save to orb for reference
                     registry.save_to_orb(spell_name, content, description)
         else:
