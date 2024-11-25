@@ -35,7 +35,13 @@ Spells are designed with a few things in mind:
 
 2. **Necromancy**: ('**nc**') Conjure a '.graveyard' domain to preserve the spirits of deleted files. This command creates a '.graveyard' directory, which serves as a storage location for deleted files. (I want to add more functionality to this command)
 
-3. **Ponder**: ('**pn**') Ponder your .orb to gain insight into the nature of the universe. This command displays the spells available to you in a more comprehensive way than the 'cast' command. *In the future, this will also serve as a way to research spells and information by calling out to the internet.*
+3. **Ponder**: ('**pd**') Ponder your `.orb` and the Chamber to gain insight into available spells both locally and in the astral plane. This command allows you to:
+
+   - **List Spells**: Display all available spells from both your local orb and the remote Chamber.
+   - **Learn Spells**: Fetch new spells from the Chamber and install them into your local spells directory. Spells are managed from `https://github.com/bobbyhiddn/Magi.Spells` and are synced automatically to Magi.Chamber(`magi-chamber.fly.dev`).
+   - **Unlearn Spells**: Remove spells from your local spells directory and your orb.
+   - **Synchronize Spells**: Sync your local orb with the Chamber to ensure you have the latest versions of spells.
+   - **Relearn Spells**: Reinstall spells from your orb that are missing in your spells directory. This allows you to recover spells after a reinstallation or migration by just migrating your .sanctum directory.
 
 4. **Divine**: ('**dv**') Gaze into the astral plane to unveil the contents and attributes of a file or directory. This command lists the contents of a directory with detailed information, such as file size, permissions, and last modified date.
 
@@ -127,7 +133,7 @@ Additional spells, file type support, and arcane features can be added to the CL
 
 ### Future Plans
 
-1. **The Astral Realm of Formulas** - This is both the public spell repo and the community forum for discussing the future of MAGI_CLI. 
+1. **The Astral Realm of Formulas** - This is both the public spell repo and the community forum for discussing the future of MAGI_CLI. This has been partially accomplished in the form of Magi.Chamber, but I want to expand on this idea and make it a more interactive experience. I want to have a forum where users can discuss the future of the project and submit their own spells. I want to have a way to vote on spells and contribute to the future of the project.
 
 2. **MAGI_CLI Sanctum** - This is an IDE for MAGI_CLI that responds to casting spells and creating commands with animations and sound effects. It will have the same goal as the CLI itself, which is to both have fun functionality and to supercharge your terminal experience.
 
