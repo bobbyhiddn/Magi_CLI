@@ -6,9 +6,9 @@ Thank you for your interest in contributing to Magi CLI! We welcome contribution
 
 To ensure that your spells function seamlessly with the `cast` command and maintain consistency within the Magi CLI project, please follow these guidelines when creating new spells:
 
-- **Location**: Spells should be located in the `./magi_cli/spells/` directory. This is the default location where the `cast` command looks for spells.
+- **Location**: While testing, should be located in the `./magi_cli/spells/` directory. This is the default location where the `cast` command looks for spells. Once they have been thoroughly tested and vetted by repo owners, they will be migrated to the Magi.Spells repo(`https://github.com/bobbyhiddn/Magi.Spells`)
 
-- **File Name**: Each spell should have its own Python file with a descriptive name. For example, `fireball.py`, `warp.py`, etc.
+- **File Name**: Each spell should have its own Python file with a descriptive and thematic name. For example, `fireball.py`, `warp.py`, etc.
 
 - **Spell Structure**: Spells should be structured as Python scripts that can be executed independently. They should have a `main` function that serves as the entry point for the spell when executed directly.
 
@@ -33,8 +33,6 @@ To ensure that your spells function seamlessly with the `cast` command and maint
     ```python
     __requires__ = ['click>=7.0', 'openai==0.6.0']
     ```
-
-- **Lazy Loading**: Spells are loaded lazily when invoked. Design your spell scripts to work with this mechanism. Avoid executing code at the module level that depends on external packages. All imports of external dependencies should be within functions or under `if __name__ == '__main__':` blocks.
 
 - **Documentation**:
 
