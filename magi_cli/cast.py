@@ -5,7 +5,6 @@ import subprocess
 import sys
 import os
 import glob
-import cProfile
 from magi_cli.spells import commands_list, aliases, SANCTUM_PATH
 
 @click.group()

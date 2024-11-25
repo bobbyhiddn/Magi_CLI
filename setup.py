@@ -12,15 +12,8 @@ setup(
     include_package_data=True,
     install_requires=[
         'Click',
-        'openai',
         'requests',
-        'Pillow',
-        'gitpython',
-        'flask',
-        'PyQt5',
         'setuptools',
-        'paramiko',
-        'cryptography',
         'markdown'
     ],
     entry_points={
@@ -39,5 +32,5 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    python_requires='>=3.6',
+    python_requires='>=3.9',
 )
