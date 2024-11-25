@@ -284,7 +284,7 @@ class SpellRegistry:
 @click.argument('args', nargs=-1, required=False)
 @click.option('--archive', '-a', is_flag=True, help='Save to orb without installing')
 def ponder(args, archive):
-    """'pd' - Ponder your .orb and the Chamber to gain insight into available spells."""
+    """'pd' - Ponder your .orb and the Chamber to gain insight into available spells both locally and in the astral plane."""
     registry = SpellRegistry()
     
     if not args:
