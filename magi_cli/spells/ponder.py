@@ -118,8 +118,13 @@ class SpellRegistry:
 
             # Save to spells directory
             spell_path = os.path.join(self.spells_dir, f"{spell_name}.py")
-            with open(spell_path, 'w') as f:
+            with open(spell_path, 'w', encoding='utf-8') as f:
                 f.write(content)
+
+            # Add empty __init__.py if it doesn't exist
+            init_path = os.path.join(self.spells_dir, "__init__.py")
+            if not os.path.exists(init_path):
+                Path(init_path).touch()
 
             # Find and update RECORD file
             site_packages = os.path.dirname(os.path.dirname(self.spells_dir))
@@ -129,17 +134,27 @@ class SpellRegistry:
             if dist_info_dirs:
                 record_path = os.path.join(dist_info_dirs[0], "RECORD")
                 if os.path.exists(record_path):
-                    # Read existing records
-                    with open(record_path, 'r') as f:
-                        records = f.readlines()
+                    try:
+                        with open(record_path, 'r', encoding='utf-8') as f:
+                            records = f.readlines()
 
-                    # Add new spell record
-                    relative_path = os.path.join("magi_cli/spells", f"{spell_name}.py")
-                    records.append(f"{relative_path}\n")
+                        # Add new spell record if not already present
+                        relative_path = "magi_cli/spells/" + f"{spell_name}.py"
+                        if not any(relative_path in record for record in records):
+                            records.append(f"{relative_path},,\n")
 
-                    # Write updated records
-                    with open(record_path, 'w') as f:
-                        f.writelines(records)
+                        with open(record_path, 'w', encoding='utf-8') as f:
+                            f.writelines(records)
+                    except Exception as e:
+                        click.echo(f"Warning: Failed to update RECORD file: {e}")
+
+            # Try to import the spell to verify installation
+            try:
+                import importlib
+                importlib.import_module(f"magi_cli.spells.{spell_name}")
+                importlib.reload(importlib.import_module("magi_cli.spells"))
+            except Exception as e:
+                click.echo(f"Warning: Spell installed but import verification failed: {e}")
 
             click.echo(f"\nThe arcane knowledge flows into your mind...")
             click.echo(f"You have learned the '{spell_name}' spell!")
@@ -193,7 +208,7 @@ class SpellRegistry:
         """Save a spell to the orb for future reference, including its description."""
         try:
             orb_path = os.path.join(self.orb_dir, f"{spell_name}.spell")
-            with open(orb_path, 'w') as f:
+            with open(orb_path, 'w', encoding='utf-8') as f:
                 if description:
                     f.write(f"# {description}\n")
                 f.write(content)
@@ -235,7 +250,7 @@ class SpellRegistry:
                 if result:
                     content, _, _ = result
                     # Save to orb
-                    with open(local_path, 'w') as f:
+                    with open(local_path, 'w', encoding='utf-8') as f:
                         f.write(content)
                     spells_synced += 1
                     click.echo(f"The essence of {spell_name} flows into your orb...")
