@@ -6,15 +6,14 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='magi_cli_pypi',
-    version='0.2.0',  # Make sure to increment this if you are republishing
+    version='1.0.0',  # Make sure to increment this if you are republishing
     packages=find_packages(),
     package_data={'magi_cli': ['artifacts/*.png']},
     include_package_data=True,
     install_requires=[
         'Click',
         'requests',
-        'setuptools',
-        'markdown'
+        'setuptools'
     ],
     entry_points={
         'console_scripts': [
