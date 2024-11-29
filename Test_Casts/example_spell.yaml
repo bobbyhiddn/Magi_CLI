@@ -1,0 +1,13 @@
+name: ListDirectory
+alias: ldir
+description: A spell to list files in a directory
+version: 1.0.0
+author: Bobby Hiddn
+shell_type: bash
+parameters:
+  directory:
+    type: string
+    required: true
+    description: Directory to list (use forward slashes, e.g., /d/Code)
+commands:
+  - ls -la "{directory}"  # Quote the variable to handle paths with spaces

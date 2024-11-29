@@ -43,9 +43,77 @@ def execute_bash_file(filename):
         # Unix-like systems
         subprocess.run(["bash", filename], check=True)
 
-# Updated execute_python_file function to accept args
+def execute_platform_command(command: str) -> bool:
+    """Execute platform-specific commands with proper error handling."""
+    try:
+        if platform.system() == 'Windows':
+            if command.startswith('explorer'):
+                # Handle Windows explorer commands
+                path = command.split(' ', 1)[1].strip()
+                try:
+                    import winreg
+                except ImportError:
+                    # Fall back to os.startfile if winreg is not available
+                    os.startfile(os.path.normpath(path))
+                    return True
+                    
+                try:
+                    # Use Windows Explorer directly
+                    subprocess.run(['explorer.exe', os.path.normpath(path)], check=False)
+                    return True
+                except subprocess.SubprocessError:
+                    # Fall back to os.startfile if explorer.exe fails
+                    os.startfile(os.path.normpath(path))
+                    return True
+            elif command.startswith('rm -rf'):
+                # Convert rm -rf to Windows equivalent
+                path = command.split(' ', 2)[2].strip()
+                if os.path.exists(path):
+                    shutil.rmtree(path, ignore_errors=True)
+                return True
+            elif command.startswith('mkdir'):
+                # Handle mkdir with -p equivalent behavior
+                path = command.split(' ', 1)[1].strip()
+                os.makedirs(path, exist_ok=True)
+                return True
+            elif command.startswith('mv'):
+                # Handle move command with pattern support
+                parts = command.split(' ')
+                if len(parts) >= 3:
+                    pattern = parts[1]
+                    dest = ' '.join(parts[2:])  # Handle destinations with spaces
+                    matched_files = glob.glob(pattern)
+                    if not matched_files:
+                        click.echo(f"Warning: No files matched pattern '{pattern}'")
+                        return False
+                    for file in matched_files:
+                        try:
+                            shutil.move(file, dest)
+                        except (shutil.Error, OSError) as e:
+                            click.echo(f"Warning: Could not move '{file}': {e}")
+                            return False
+                    return True
+                return False
+        
+        # For all other commands or non-Windows systems
+        result = subprocess.run(command, shell=True, check=False)
+        if result.returncode != 0:
+            click.echo(f"Warning: Command '{command}' returned non-zero exit code {result.returncode}")
+            return False
+        return True
+    except Exception as e:
+        click.echo(f"Warning: Command '{command}' failed: {str(e)}")
+        return False
+
 def execute_python_file(filename, args):
-    subprocess.run([sys.executable, filename, *args], check=True)
+    """Execute Python file with better error handling."""
+    try:
+        subprocess.run([sys.executable, filename, *args], check=True)
+    except subprocess.CalledProcessError as e:
+        # Suppress the error stacktrace but show a user-friendly message
+        click.echo(f"Warning: Script execution failed with exit code {e.returncode}")
+        return False
+    return True
 
 def extract_spell_bundle(spell_path: Path) -> tuple[Path, dict]:
     """Extracts a spell bundle to a temporary directory and returns the path and metadata."""
@@ -62,7 +130,11 @@ def extract_spell_bundle(spell_path: Path) -> tuple[Path, dict]:
     metadata = json.loads(metadata_path.read_text())
     return temp_dir, metadata
 
-def execute_spell_file(spell_file):
+def execute_spell_file(spell_file, args=None):
+    """Execute a spell file with optional arguments."""
+    if args is None:
+        args = []
+    
     tome_path = os.path.join(SANCTUM_PATH, '.tome')
     spell_file_path = spell_file if '.tome' in spell_file else os.path.join(tome_path, spell_file)
 
@@ -83,10 +155,14 @@ def execute_spell_file(spell_file):
         temp_dir, metadata = extract_spell_bundle(Path(spell_file_path))
         try:
             main_script = temp_dir / metadata['main_script']
+            success = False
             if main_script.suffix == '.py':
-                execute_python_file(str(main_script), [])
+                success = execute_python_file(str(main_script), args)
             elif main_script.suffix == '.sh':
-                execute_bash_file(str(main_script))
+                success = execute_bash_file(str(main_script))
+            
+            if not success:
+                click.echo("Note: Spell completed with some warnings.")
         finally:
             shutil.rmtree(temp_dir)
     except (zipfile.BadZipFile, KeyError):
@@ -94,11 +170,15 @@ def execute_spell_file(spell_file):
         with open(spell_file_path, 'r') as file:
             lines = file.readlines()
         
+        all_succeeded = True
         for line in lines:
             stripped_line = line.strip()
-            if stripped_line.startswith("#"):
-                continue
-            subprocess.run(stripped_line, shell=True)
+            if stripped_line and not stripped_line.startswith("#"):
+                if not execute_platform_command(stripped_line):
+                    all_succeeded = False
+        
+        if not all_succeeded:
+            click.echo("Note: Some commands completed with warnings.")
 
 # Click functions
 
@@ -147,10 +227,12 @@ def cast(input, **kwargs):
         file_path = os.path.join(tome_path, input[0])
         if os.path.isfile(file_path) or os.path.isfile(input[0]):
             target_file = file_path if os.path.isfile(file_path) else input[0]
+            args = input[1:] if len(input) > 1 else []
+            
             if target_file.endswith(".py"):
-                execute_python_file(target_file, input[1:])
+                execute_python_file(target_file, args)
             elif target_file.endswith(".spell"):
-                execute_spell_file(target_file.replace(".spell", ""))
+                execute_spell_file(target_file.replace(".spell", ""), args)
             elif target_file.endswith(".sh"):
                 execute_bash_file(target_file)
         else:
