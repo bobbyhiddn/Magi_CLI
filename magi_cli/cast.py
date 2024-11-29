@@ -1,10 +1,14 @@
 #!/usr/bin/env python3
 
-import click # type: ignore
+import click
 import subprocess
 import sys
 import os
 import glob
+import json
+import zipfile
+import tempfile
+from pathlib import Path
 from magi_cli.spells import commands_list, aliases, SANCTUM_PATH
 
 @click.group()
@@ -16,39 +20,64 @@ def cli(ctx):
 for command in commands_list:
     cli.add_command(command)
 
-# Non-click functions
-
-def execute_bash_file(filename):
+def execute_bash_file(filename: str) -> None:
+    """Execute a bash script file."""
     subprocess.run(["bash", filename], check=True)
 
-# Updated execute_python_file function to accept args
-def execute_python_file(filename, args):
+def execute_python_file(filename: str, args: list) -> None:
+    """Execute a Python script file with optional arguments."""
     subprocess.run([sys.executable, filename, *args], check=True)
 
-def execute_spell_file(spell_file):
-    tome_path = os.path.join(SANCTUM_PATH, '.tome')
-    spell_file_path = spell_file if '.tome' in spell_file else os.path.join(tome_path, spell_file)
-
-    if not spell_file_path.endswith('.spell'):
-        spell_file_path += '.spell'
+def execute_spell_file(spell_name: str) -> None:
+    """
+    Execute a spell file (.spell) from the .tome directory.
     
-    if not os.path.exists(spell_file_path):
-        click.echo(f"Could not find {spell_file}.spell in .tome directory. Checking current directory for .tome directory...")
-        spell_file_path = os.path.join(".tome", spell_file)
-        if not os.path.exists(spell_file_path):
-            click.echo(f"Could not find {spell_file}.spell in current directory or .tome directory.")
+    Args:
+        spell_name: Name of the spell to execute
+    """
+    tome_path = Path(SANCTUM_PATH) / '.tome'
+    spell_file_path = tome_path / f"{spell_name.removesuffix('.spell')}.spell"
+
+    if not spell_file_path.exists():
+        click.echo(f"Could not find {spell_name}.spell in .tome directory.")
+        return
+
+    with zipfile.ZipFile(spell_file_path, 'r') as spell_zip:
+        # Extract and validate metadata
+        try:
+            with spell_zip.open('spell.json') as f:
+                metadata = json.load(f)
+        except KeyError:
+            click.echo("Invalid spell file: Missing 'spell.json'")
             return
-        elif not spell_file_path.endswith('.spell'):
-            spell_file_path += '.spell'
 
-    with open(spell_file_path, 'r') as file:
-        lines = file.readlines()
+        main_script = metadata.get('main_script')
+        if not main_script:
+            click.echo("Invalid spell file: 'main_script' not specified in 'spell.json'")
+            return
 
-    for line in lines:
-        stripped_line = line.strip()
-        if stripped_line.startswith("#"):
-            continue
-        subprocess.run(stripped_line, shell=True)
+        # Execute in temporary directory
+        with tempfile.TemporaryDirectory() as temp_dir:
+            spell_zip.extractall(temp_dir)
+            script_path = Path(temp_dir) / main_script
+
+            if not script_path.is_file():
+                click.echo(f"Main script '{main_script}' not found in the spell bundle.")
+                return
+
+            # Set executable permissions
+            script_path.chmod(0o775)
+
+            # Execute based on script type
+            try:
+                if script_path.suffix == '.py':
+                    execute_python_file(str(script_path), [])
+                elif script_path.suffix == '.sh':
+                    execute_bash_file(str(script_path))
+                else:
+                    click.echo(f"Unsupported script type: {script_path.suffix}")
+            except subprocess.CalledProcessError as e:
+                click.echo(f"Spell execution failed with exit code {e.returncode}")
 
 # Click functions
 

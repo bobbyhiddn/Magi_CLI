@@ -13,7 +13,8 @@ setup(
     install_requires=[
         'Click',
         'requests',
-        'setuptools'
+        'setuptools',
+        'pyyaml'
     ],
     entry_points={
         'console_scripts': [
