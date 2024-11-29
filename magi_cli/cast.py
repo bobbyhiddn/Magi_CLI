@@ -12,8 +12,7 @@ from pathlib import Path
 from magi_cli.spells import commands_list, aliases, SANCTUM_PATH
 
 @click.group()
-@click.pass_context
-def cli(ctx):
+def cli():
     """A Python CLI for casting spells."""
     pass
 
@@ -28,12 +27,13 @@ def execute_python_file(filename: str, args: list) -> None:
     """Execute a Python script file with optional arguments."""
     subprocess.run([sys.executable, filename, *args], check=True)
 
-def execute_spell_file(spell_name: str) -> None:
+def execute_spell_file(spell_name: str, spell_args: list) -> None:
     """
     Execute a spell file (.spell) from the .tome directory.
-    
+
     Args:
         spell_name: Name of the spell to execute
+        spell_args: Arguments to pass to the spell
     """
     tome_path = Path(SANCTUM_PATH) / '.tome'
     spell_file_path = tome_path / f"{spell_name.removesuffix('.spell')}.spell"
@@ -71,7 +71,7 @@ def execute_spell_file(spell_name: str) -> None:
             # Execute based on script type
             try:
                 if script_path.suffix == '.py':
-                    execute_python_file(str(script_path), [])
+                    execute_python_file(str(script_path), spell_args)
                 elif script_path.suffix == '.sh':
                     execute_bash_file(str(script_path))
                 else:
@@ -83,7 +83,7 @@ def execute_spell_file(spell_name: str) -> None:
 
 @click.command()
 @click.argument('input', nargs=-1)
-def cast(input, **kwargs):
+def cast(input):
     input = list(input)  # Convert input into a list to separate command and arguments
 
     # Use SANCTUM_PATH for the .tome directory
@@ -97,43 +97,29 @@ def cast(input, **kwargs):
 
         print("\nAvailable spells recorded in your tome:")
         for file in glob.glob(f"{tome_path}/*.spell"):
-            print(f"- {os.path.basename(file)}")
-
-    elif input[0] in aliases:
-        command = aliases[input[0]]
-        ctx = click.get_current_context()
-        if len(input) > 1:
-            ctx.invoke(command, args=input[1:])
-        else:
-            if 'alias' in kwargs:
-                ctx.invoke(command, alias=kwargs['alias'])
-            else:
-                ctx.invoke(command)
-    elif input[0] in cli.commands:
-        ctx = click.get_current_context()
-        command = cli.commands[input[0]]
-        if len(input) > 1:
-            # Ensure the arguments are passed correctly
-            ctx.invoke(command, args=input[1:])
-        else:
-            if 'alias' in kwargs:
-                ctx.invoke(command, alias=kwargs['alias'])
-            else:
-                ctx.invoke(command)
+            print(f"- {os.path.basename(file)[:-6]}")  # Remove '.spell' extension
 
     else:
-        # Check if the input is a file and execute accordingly
-        file_path = os.path.join(tome_path, input[0])
-        if os.path.isfile(file_path) or os.path.isfile(input[0]):
-            target_file = file_path if os.path.isfile(file_path) else input[0]
-            if target_file.endswith(".py"):
-                execute_python_file(target_file, input[1:])
-            elif target_file.endswith(".spell"):
-                execute_spell_file(target_file.replace(".spell", ""))
-            elif target_file.endswith(".sh"):
-                execute_bash_file(target_file)
+        cmd_name = input[0]
+        cmd_args = input[1:]
+
+        if cmd_name in aliases:
+            command = aliases[cmd_name]
+            ctx = click.get_current_context()
+            ctx.invoke(command, *cmd_args)
+        elif cmd_name in cli.commands:
+            command = cli.commands[cmd_name]
+            ctx = click.get_current_context()
+            ctx.invoke(command, *cmd_args)
         else:
-            print(f"Error: Command or file '{input[0]}' not found.")
+            # Check if the input is a spell file and execute accordingly
+            spell_name = cmd_name
+            spell_args = cmd_args
+            spell_file_path = os.path.join(tome_path, f"{spell_name}.spell")
+            if os.path.isfile(spell_file_path):
+                execute_spell_file(spell_name, spell_args)
+            else:
+                print(f"Error: Command or spell '{cmd_name}' not found.")
 
 def main():
     cast()
