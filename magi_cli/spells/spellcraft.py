@@ -66,10 +66,14 @@ def create_spell_bundle_from_directory(spell_dir: Path, spell_name: str, descrip
     return spell_path
 
 @click.command()
-@click.argument('spell_dir')
-def spellcraft(spell_dir):
+@click.argument('args', nargs=-1)
+def spellcraft(args):
     """'sc' - Weaves a macro spell out of scripts and stores it in ~/.sanctum/.tome."""
-    spell_dir = Path(spell_dir)
+    if not args:
+        click.echo("Error: Please provide a directory path.")
+        return
+    
+    spell_dir = Path(args[0])
     if not spell_dir.is_dir():
         click.echo(f"Error: '{spell_dir}' is not a directory.")
         return
