@@ -1,0 +1,27 @@
+name: file_processor
+description: Process files in a directory
+shell_type: python
+parameters:
+  input_dir:
+    type: string
+    required: true
+    description: Input directory
+  pattern:
+    type: string
+    required: false
+    default: "*.txt"
+    description: File pattern to match
+  backup:
+    type: boolean
+    required: false
+    default: true
+    description: Create backups before processing
+commands:
+  - |
+    import os, shutil, glob
+    files = glob.glob(os.path.join("{input_dir}", "{pattern}"))
+    if {backup} and files:
+        os.makedirs("{input_dir}/backup", exist_ok=True)
+        for f in files:
+            shutil.copy2(f, "{input_dir}/backup")
+    print(f"Found {len(files)} files matching pattern")

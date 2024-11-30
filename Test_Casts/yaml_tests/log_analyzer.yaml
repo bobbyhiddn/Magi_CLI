@@ -1,0 +1,48 @@
+name: log_analyzer
+description: Analyze and summarize log files
+shell_type: python
+parameters:
+  log_path:
+    type: string
+    required: true
+    description: Path to log directory
+  days:
+    type: integer
+    required: false
+    default: 7
+    description: Days of logs to analyze
+  pattern:
+    type: string
+    required: false
+    default: "*.log"
+    description: Log file pattern
+  output_format:
+    type: string
+    required: false
+    default: "text"
+    description: Output format (text/csv/json)
+commands:
+  - |
+    import os, glob, json, csv
+    from datetime import datetime, timedelta
+    from collections import defaultdict
+    
+    stats = defaultdict(int)
+    cutoff = datetime.now() - timedelta(days={days})
+    
+    for log in glob.glob(os.path.join("{log_path}", "{pattern}")):
+        if os.path.getmtime(log) >= cutoff.timestamp():
+            with open(log) as f:
+                for line in f:
+                    if "ERROR" in line: stats["errors"] += 1
+                    if "WARNING" in line: stats["warnings"] += 1
+    
+    if "{output_format}" == "json":
+        with open("report.json", "w") as f:
+            json.dump(stats, f, indent=2)
+    elif "{output_format}" == "csv":
+        with open("report.csv", "w") as f:
+            writer = csv.writer(f)
+            writer.writerows(stats.items())
+    else:
+        print("\n".join(f"{k}: {v}" for k, v in stats.items()))

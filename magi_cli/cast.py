@@ -161,8 +161,6 @@ def execute_spell_file(spell_file, args=None):
             elif main_script.suffix == '.sh':
                 success = execute_bash_file(str(main_script))
             
-            if not success:
-                click.echo("Note: Spell completed with some warnings.")
         finally:
             shutil.rmtree(temp_dir)
     except (zipfile.BadZipFile, KeyError):

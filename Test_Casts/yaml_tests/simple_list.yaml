@@ -1,0 +1,10 @@
+name: simple_list
+description: List contents of a directory
+shell_type: bash
+parameters:
+  directory:
+    type: string
+    required: true
+    description: Directory to list
+commands:
+  - ls -la {directory}

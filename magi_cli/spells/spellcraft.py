@@ -16,11 +16,6 @@ SUPPORTED_SHELLS = {
         'description': 'Unix/Linux bash shell',
         'shebang': '#!/bin/bash'
     },
-    'batch': {
-        'extension': '.bat',
-        'description': 'Windows batch shell',
-        'shebang': '@echo off'
-    },
     'python': {
         'extension': '.py',
         'description': 'Python script',
@@ -93,8 +88,8 @@ def generate_shell_script(commands: list[str], shell_type: str, parameters: Dict
         return generate_python_script(commands, parameters or {})
     elif shell_type == 'bash':
         return generate_bash_script(commands, parameters or {})
-    elif shell_type == 'batch':
-        return generate_batch_script(commands, parameters or {})
+    else:
+        raise ValueError(f"Unsupported shell type: {shell_type}")
 
 def generate_bash_script(commands: list[str], parameters: Dict[str, Any]) -> str:
     script_lines = [
@@ -121,32 +116,6 @@ def generate_bash_script(commands: list[str], parameters: Dict[str, Any]) -> str
         script_lines.append(cmd)
     
     return "\n".join(script_lines)
-
-def generate_batch_script(commands: list[str], parameters: Dict[str, Any]) -> str:
-    script_lines = [
-        "@echo off",
-        "",
-        "rem Handle parameters",
-    ]
-    
-    # Add parameter handling
-    for name, config in parameters.items():
-        if config.get('required', False):
-            script_lines.extend([
-                f'if "%{name}%" == "" (',
-                f'    set /p {name}="Enter value for {name}: "',
-                ')'
-            ])
-    
-    script_lines.extend(["", "rem Execute commands"])
-    for cmd in commands:
-        if parameters:
-            # Use batch variable substitution
-            for param in parameters:
-                cmd = cmd.replace(f'{{{param}}}', f'%{param}%')
-        script_lines.append(cmd)
-    
-    return "\n".join(script_lines)  # Fixed string join syntax
 
 def generate_python_script(commands: list[str], parameters: Dict[str, Any]) -> str:
     """Generates a Python script with parameter validation and command execution."""

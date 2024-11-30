@@ -1,0 +1,27 @@
+name: system_check
+description: System diagnostics and reporting
+shell_type: bash
+parameters:
+  output_file:
+    type: string
+    required: false
+    default: "system_report.txt"
+    description: Report output location
+  check_disk:
+    type: boolean
+    required: false
+    default: true
+    description: Include disk usage
+  check_memory:
+    type: boolean
+    required: false
+    default: true
+    description: Include memory usage
+commands:
+  - echo "System Report - $(date)" > {output_file}
+  - echo "------------------------" >> {output_file}
+  - uname -a >> {output_file}
+  - if [ "{check_disk}" = "true" ]; then df -h >> {output_file}; fi
+  - if [ "{check_memory}" = "true" ]; then free -h >> {output_file}; fi
+  - echo "System uptime:" >> {output_file}
+  - uptime >> {output_file}

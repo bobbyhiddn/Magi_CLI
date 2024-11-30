@@ -1,0 +1,19 @@
+name: git_tools
+description: Git repository management utilities
+shell_type: bash
+parameters:
+  branch:
+    type: string
+    required: false
+    default: main
+    description: Branch to work with
+  message:
+    type: string
+    required: false
+    default: "Auto commit"
+    description: Commit message
+commands:
+  - git checkout {branch}
+  - git add .
+  - git commit -m "{message}"
+  - git push origin {branch}
