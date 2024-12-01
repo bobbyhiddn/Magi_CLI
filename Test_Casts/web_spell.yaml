@@ -1,0 +1,66 @@
+name: web_spell
+description: A simple web server spell
+type: bundled
+shell_type: python
+
+# Dependencies needed
+requires:
+  - flask
+  - click
+
+# The main spell implementation
+code: |
+  from flask import Flask, render_template
+  import click
+
+  app = Flask(__name__)
+
+  @app.route('/')
+  def home():
+      return render_template('index.html')
+
+  @click.command()
+  def main():
+      """Start the magical web server."""
+      app.run(port=5000)
+
+  if __name__ == '__main__':
+      main()
+
+# Additional files needed
+artifacts:
+  # Direct content specification
+  - path: templates/index.html
+    content: |
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Magic Web</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 40px;
+              text-align: center;
+            }
+            h1 { color: #4a90e2; }
+          </style>
+        </head>
+        <body>
+          <h1>Welcome to the Magical Web!</h1>
+          <p>Your spell is working perfectly!</p>
+        </body>
+      </html>
+  
+  - path: static/style.css
+    content: |
+      /* Basic styles */
+      body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        margin: 0;
+        padding: 20px;
+      }
+      .container {
+        max-width: 800px;
+        margin: 0 auto;
+      }

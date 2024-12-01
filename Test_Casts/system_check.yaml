@@ -1,0 +1,78 @@
+name: system_check
+description: A spell that performs system health checks
+type: script
+shell_type: shell
+
+code: |
+  #!/bin/bash
+  
+  # Source our utility functions
+  source "$(dirname "$0")/../artifacts/lib/utils.sh"
+  
+  # Print header
+  echo "=== System Health Check ==="
+  echo "Running checks at $(date)"
+  
+  # Check disk space
+  echo -e "\nDisk Space Usage:"
+  df -h | grep -E '^/dev'
+  
+  # Check memory
+  echo -e "\nMemory Usage:"
+  free -h
+  
+  # Check CPU load
+  echo -e "\nCPU Load:"
+  uptime
+  
+  # Check running services
+  echo -e "\nKey Services Status:"
+  services=$(cat "$(dirname "$0")/../artifacts/config/services.txt")
+  for service in $services; do
+    echo "- $service: $(systemctl is-active $service 2>/dev/null || echo 'not found')"
+  done
+  
+  # Print summary
+  cat "$(dirname "$0")/../artifacts/templates/summary.txt"
+
+artifacts:
+  - path: lib/utils.sh
+    content: |
+      #!/bin/bash
+      
+      check_disk_space() {
+        echo "Checking disk space..."
+        df -h | grep -E '^/dev'
+      }
+      
+      check_memory_usage() {
+        echo "Checking memory usage..."
+        free -h
+      }
+      
+      check_cpu_load() {
+        echo "Checking CPU load..."
+        uptime
+      }
+      
+      check_running_services() {
+        echo "Checking services..."
+        services=$(cat "$(dirname "$0")/../config/services.txt")
+        for service in $services; do
+          echo "- $service: $(systemctl is-active $service 2>/dev/null || echo 'not found')"
+        done
+      }
+      
+  - path: templates/summary.txt
+    content: |
+      
+      === Summary ===
+      System health check complete
+      See detailed logs in /var/log/system-check.log
+      
+  - path: config/services.txt
+    content: |
+      sshd
+      network
+      firewalld
+      docker

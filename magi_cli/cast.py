@@ -6,6 +6,7 @@ import sys
 import os
 import glob
 from magi_cli.spells import commands_list, aliases, SANCTUM_PATH
+from magi_cli.modules.spell_parse import SpellParser  # Import SpellParser
 
 @click.group()
 @click.pass_context
@@ -24,31 +25,6 @@ def execute_bash_file(filename):
 # Updated execute_python_file function to accept args
 def execute_python_file(filename, args):
     subprocess.run([sys.executable, filename, *args], check=True)
-
-def execute_spell_file(spell_file):
-    tome_path = os.path.join(SANCTUM_PATH, '.tome')
-    spell_file_path = spell_file if '.tome' in spell_file else os.path.join(tome_path, spell_file)
-
-    if not spell_file_path.endswith('.spell'):
-        spell_file_path += '.spell'
-    
-    if not os.path.exists(spell_file_path):
-        click.echo(f"Could not find {spell_file}.spell in .tome directory. Checking current directory for .tome directory...")
-        spell_file_path = os.path.join(".tome", spell_file)
-        if not os.path.exists(spell_file_path):
-            click.echo(f"Could not find {spell_file}.spell in current directory or .tome directory.")
-            return
-        elif not spell_file_path.endswith('.spell'):
-            spell_file_path += '.spell'
-
-    with open(spell_file_path, 'r') as file:
-        lines = file.readlines()
-
-    for line in lines:
-        stripped_line = line.strip()
-        if stripped_line.startswith("#"):
-            continue
-        subprocess.run(stripped_line, shell=True)
 
 # Click functions
 
@@ -93,18 +69,12 @@ def cast(input, **kwargs):
                 ctx.invoke(command)
 
     else:
-        # Check if the input is a file and execute accordingly
-        file_path = os.path.join(tome_path, input[0])
-        if os.path.isfile(file_path) or os.path.isfile(input[0]):
-            target_file = file_path if os.path.isfile(file_path) else input[0]
-            if target_file.endswith(".py"):
-                execute_python_file(target_file, input[1:])
-            elif target_file.endswith(".spell"):
-                execute_spell_file(target_file.replace(".spell", ""))
-            elif target_file.endswith(".sh"):
-                execute_bash_file(target_file)
-        else:
-            print(f"Error: Command or file '{input[0]}' not found.")
+        # Use SpellParser to execute the spell file
+        spell_name = input[0]
+        args = input[1:] if len(input) > 1 else []
+        success = SpellParser.execute_spell_file(spell_name, args)
+        if not success:
+            print(f"Error: Failed to execute spell '{spell_name}'.")
 
 def main():
     cast()

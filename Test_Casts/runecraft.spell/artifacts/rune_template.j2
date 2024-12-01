@@ -1,0 +1,109 @@
+import sys
+import subprocess
+import signal
+from PyQt5.QtGui import QPixmap, QColor
+from PyQt5.QtWidgets import QGraphicsDropShadowEffect, QApplication, QLabel, QVBoxLayout, QWidget, QPushButton
+from PyQt5.QtCore import Qt, QSize
+
+signal.signal(signal.SIGINT, signal.SIG_IGN)
+
+class ImageButton(QLabel):
+    def __init__(self, image_path, command, path):
+        super().__init__()
+        self.pixmap = QPixmap(image_path)
+        self.command = command
+        self.path = path
+        self.moved = False
+
+        # Scale pixmap
+        target_size = QSize(128, 128)  # 25% of 512x512
+        scaled_pixmap = self.pixmap.scaled(
+            target_size,
+            Qt.KeepAspectRatio,
+            Qt.SmoothTransformation
+        )
+        self.setPixmap(scaled_pixmap)
+        
+        # Add shadow effect
+        shadow = QGraphicsDropShadowEffect()
+        shadow.setBlurRadius(15)
+        shadow.setOffset(5, 5)
+        shadow.setColor(QColor("black"))
+        self.setGraphicsEffect(shadow)
+
+    def mousePressEvent(self, event):
+        self.parent().mousePressEvent(event)
+        super().mousePressEvent(event)
+
+    def mouseMoveEvent(self, event):
+        self.moved = True
+        self.parent().mouseMoveEvent(event)
+        super().mouseMoveEvent(event)
+
+    def mouseReleaseEvent(self, event):
+        if event.button() == Qt.LeftButton and not self.moved:
+            try:
+                cmd = f'{self.command} "{self.path}"'
+                subprocess.Popen(cmd, shell=True)
+            except Exception as e:
+                print(f"Error executing script: {e}")
+        self.moved = False
+        super().mouseReleaseEvent(event)
+
+class DraggableWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.setWindowFlags(Qt.FramelessWindowHint | Qt.WindowStaysOnTopHint)
+        self.setAttribute(Qt.WA_TranslucentBackground)
+        self.mpos = None
+        
+        layout = QVBoxLayout(self)
+        layout.setAlignment(Qt.AlignCenter)
+        layout.setContentsMargins(10, 10, 10, 10)
+        
+        self.button = ImageButton(
+            r"{{image_path}}", 
+            r"{{command}}", 
+            r"{{script_path}}"
+        )
+        layout.addWidget(self.button)
+        
+        # Add close button
+        close = QPushButton("X", self)
+        close.clicked.connect(sys.exit)
+        close.setStyleSheet("""
+            QPushButton {
+                color: teal; 
+                background-color: black; 
+                border-radius: 10px;
+                font-size: 12px;
+                padding: 2px;
+            }
+            QPushButton:hover {
+                background-color: #ff7f7f;
+            }
+        """)
+        close.setFixedSize(20, 20)
+        close.move(110, 0)
+        
+        self.adjustSize()
+        self.show()
+
+    def mousePressEvent(self, event):
+        if event.button() == Qt.LeftButton:
+            self.mpos = event.globalPos() - self.pos()
+            event.accept()
+
+    def mouseMoveEvent(self, event):
+        if event.buttons() == Qt.LeftButton and self.mpos is not None:
+            self.move(event.globalPos() - self.mpos)
+            event.accept()
+
+    def mouseReleaseEvent(self, event):
+        self.mpos = None
+        self.button.moved = False
+        event.accept()
+
+app = QApplication(sys.argv)
+window = DraggableWindow()
+sys.exit(app.exec_())
