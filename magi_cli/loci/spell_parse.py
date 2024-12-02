@@ -10,7 +10,6 @@ import click  # Ensure click is imported
 import shutil
 from pathlib import Path
 from typing import Tuple, Dict, Any, Optional
-
 from magi_cli.spells import SANCTUM_PATH
 
 class SpellParser:

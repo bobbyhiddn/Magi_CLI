@@ -10,8 +10,8 @@ import requests
 from datetime import datetime
 from pathlib import Path
 from typing import Optional, List, Dict, Any
-from magi_cli.modules.spell_bundle import SpellBundle
-from magi_cli.modules.spell_builder import SpellBuilder
+from magi_cli.loci.spell_bundle import SpellBundle
+from magi_cli.loci.spell_builder import SpellBuilder
 from magi_cli.spells import SANCTUM_PATH
 
 class SpellRecipe:

@@ -1,0 +1,6 @@
+description: Count word frequencies in text files
+entry_point: spell/counter.py
+name: counter
+shell_type: python
+type: bundled
+version: 1.0.0

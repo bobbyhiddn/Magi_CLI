@@ -1,0 +1,8 @@
+description: Analyze sentiment in text using TextBlob
+entry_point: spell/analyzer.py
+name: sentiment
+shell_type: python
+type: bundled
+version: 1.0.0
+requires:
+  - textblob>=0.17.1

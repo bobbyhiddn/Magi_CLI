@@ -1,8 +1,0 @@
-name: weather
-version: 1.0.0
-description: Check the weather for a given location using OpenWeatherMap API
-type: bundled
-shell_type: python
-entry_point: spell/weather.py
-requires:
-  - requests>=2.25.1
