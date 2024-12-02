@@ -6,6 +6,7 @@ import yaml
 import hashlib
 import shutil
 import tempfile
+import subprocess
 import requests
 from datetime import datetime
 from pathlib import Path
@@ -165,13 +166,83 @@ class SpellRecipe:
                         dest_dir = self.spell_dir / 'spell' / item.name
                         shutil.copytree(item, dest_dir, dirs_exist_ok=True)
                     
+            # Convert dependencies to requires list
+            requires = []
+            if 'requires' in config:
+                requires = config['requires'] if isinstance(config['requires'], list) else [config['requires']]
+            elif 'dependencies' in config and 'python' in config['dependencies']:
+                requires = config['dependencies']['python']
+            
+            # Create yaml config with requires
+            yaml_config = {
+                'name': config['name'],
+                'type': config['type'],
+                'shell_type': config.get('shell_type', 'python'),
+                'entry_point': config['entry_point'].replace('spell/', ''),  # Remove spell/ prefix
+                'description': config['description'],
+                'requires': requires,
+                'version': config.get('version', '1.0.0')
+            }
+            
+            # Check for missing dependencies
+            if requires:
+                try:
+                    import importlib.util
+                    missing_deps = []
+                    
+                    for dep in requires:
+                        pkg_name = dep.split('>=')[0].split('~=')[0].split('==')[0].strip()
+                        try:
+                            spec = importlib.util.find_spec(pkg_name)
+                            if spec is None:
+                                missing_deps.append(dep)
+                        except ImportError:
+                            missing_deps.append(dep)
+                            
+                    if missing_deps:
+                        click.echo("\nMissing required packages:")
+                        for dep in missing_deps:
+                            click.echo(f"  - {dep}")
+                            
+                        if click.confirm("\nWould you like to install these dependencies now?", default=True):
+                            try:
+                                click.echo("\nInstalling dependencies...")
+                                subprocess.run([sys.executable, '-m', 'pip', 'install', *missing_deps], check=True)
+                                click.echo("Dependencies installed successfully.")
+                            except subprocess.CalledProcessError as e:
+                                click.echo(f"Warning: Failed to install dependencies: {e}")
+                                if not click.confirm("\nWould you like to continue without installing dependencies?", default=False):
+                                    raise ValueError("Cannot proceed: missing required dependencies")
+                        elif not click.confirm("\nWould you like to continue without installing dependencies?", default=False):
+                            raise ValueError("Cannot proceed: missing required dependencies")
+                            
+                except Exception as e:
+                    click.echo(f"Warning: Could not check dependencies: {e}")
+                    if not click.confirm("\nWould you like to continue without checking dependencies?", default=False):
+                        raise ValueError("Cannot proceed: unable to check dependencies")
+            
+            # Write yaml config
+            yaml_path = self.spell_dir / 'spell' / 'spell.yaml'
+            yaml_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(yaml_path, 'w') as f:
+                yaml.dump(yaml_config, f, default_flow_style=False)
+            
+            # Copy entry point script from the correct location
+            source_script = source_dir / 'spell' / yaml_config['entry_point']
+            target_script = self.spell_dir / 'spell' / yaml_config['entry_point']
+            if source_script.exists():
+                target_script.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(source_script, target_script)
+            else:
+                raise ValueError(f"Entry point script not found: {source_script}")
+            
             # Use SpellBundle.create_spell_bundle for proper bundling
             bundle = SpellBundle(self.spell_dir)
             return bundle.create_spell_bundle(
                 spell_name=config['name'],
                 spell_type=config['type'],
                 shell_type=config.get('shell_type', 'python'),
-                entry_point=config['entry_point'],
+                entry_point=yaml_config['entry_point'],  # Use the updated entry point
                 description=config['description'],
                 spell_dir=self.spell_dir,
                 verify_structure=False  # Skip structure verification since we copied exactly
@@ -190,7 +261,11 @@ class SpellRecipe:
 
         # Create metadata and config
         metadata = self._generate_metadata(description, "spell/main.py")
-        self._create_yaml_config(metadata)
+        additional_config = {
+            'requires': [],  # Add empty requires list for new spells
+            'version': '1.0.0'
+        }
+        self._create_yaml_config(metadata, additional_config)
         
         return self._bundle_spell(metadata)
 

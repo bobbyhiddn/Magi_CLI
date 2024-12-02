@@ -104,7 +104,16 @@ class SpellBundle:
             'type': spell_type,
             'shell_type': shell_type,
             'entry_point': Path(entry_point).name,  # Use just the filename
+            'requires': []  # Initialize empty requires list
         }
+        
+        # Load existing requires if present
+        existing_yaml = nested_dir / 'spell.yaml'
+        if existing_yaml.exists():
+            with open(existing_yaml) as f:
+                existing_config = yaml.safe_load(f)
+                if 'requires' in existing_config:
+                    yaml_config['requires'] = existing_config['requires']
         
         print("- Writing spell.yaml")
         yaml_path = nested_dir / 'spell.yaml'
@@ -115,7 +124,7 @@ class SpellBundle:
         sigil_hash = hashlib.md5(f"{spell_name}_{description}_{spell_type}".encode()).hexdigest()
         print(f"- Generated sigil hash: {sigil_hash}")
 
-        # Generate metadata
+        # Generate metadata with standardized dependencies format
         metadata = {
             "name": spell_name,
             "description": description,
@@ -124,7 +133,8 @@ class SpellBundle:
             "shell_type": shell_type,
             "type": spell_type,
             "version": "1.0.0",
-            "sigil_hash": sigil_hash
+            "sigil_hash": sigil_hash,
+            "dependencies": {"python": yaml_config['requires']}  # Use standardized format
         }
 
         print("- Creating bundle...")
@@ -399,7 +409,8 @@ class SpellBundle:
                 "shell_type": config.get("shell_type", "python"),
                 "type": config.get("type", "bundled"),
                 "version": config.get("version", "1.0.0"),
-                "sigil_hash": sigil_hash
+                "sigil_hash": sigil_hash,
+                "dependencies": config.get('dependencies', {'python': []})  # Use dependencies from config
             }
             
             # Create the zip bundle

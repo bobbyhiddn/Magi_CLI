@@ -9,7 +9,7 @@ import sys
 import click  # Ensure click is imported
 import shutil
 from pathlib import Path
-from typing import Tuple, Dict, Any, Optional
+from typing import Tuple, Dict, Any, Optional, List
 from magi_cli.spells import SANCTUM_PATH
 
 class SpellParser:
@@ -37,6 +37,9 @@ class SpellParser:
                 if (metadata_path.exists()):
                     metadata = json.loads(metadata_path.read_text())
                     SpellParser._validate_metadata(metadata)
+                    # Check dependencies after validation
+                    if not SpellParser.check_dependencies(metadata.get('dependencies', {})):
+                        raise ValueError("Cannot proceed: missing required dependencies")
                     return temp_dir, metadata
                     
                 # Try legacy spell.yaml format
@@ -47,6 +50,9 @@ class SpellParser:
                         config = yaml.safe_load(f)
                     metadata = SpellParser._convert_yaml_to_metadata(config)
                     SpellParser._validate_metadata(metadata)
+                    # Check dependencies after validation
+                    if not SpellParser.check_dependencies(metadata.get('dependencies', {})):
+                        raise ValueError("Cannot proceed: missing required dependencies")
                     return temp_dir, metadata
                     
                 raise ValueError("No valid metadata found in spell bundle")
@@ -95,11 +101,29 @@ class SpellParser:
         entry_point = Path(metadata['entry_point'])
         if entry_point.suffix not in SpellParser.ALLOWED_EXTENSIONS:
             raise ValueError(f"Invalid entry point file type: {metadata['entry_point']}")
+            
+        # Validate dependencies format if present
+        if 'dependencies' in metadata:
+            if not isinstance(metadata['dependencies'], dict):
+                raise ValueError("Dependencies must be a dictionary")
+            if 'python' in metadata['dependencies'] and not isinstance(metadata['dependencies']['python'], list):
+                raise ValueError("Python dependencies must be a list")
 
     @staticmethod
     def _convert_yaml_to_metadata(config: Dict[str, Any]) -> Dict[str, Any]:
         """Convert legacy spell.yaml format to standardized metadata."""
-        return {
+        # Handle requires field - ensure it's a list
+        requires = []
+        if 'requires' in config:
+            if isinstance(config['requires'], list):
+                requires = config['requires']
+            elif isinstance(config['requires'], str):
+                requires = [config['requires']]
+                
+        # Create dependencies dict with python key if we have requires
+        dependencies = {'python': requires} if requires else {}
+        
+        metadata = {
             'name': config.get('name'),
             'version': config.get('version', '1.0.0'),
             'description': config.get('description', ''),
@@ -107,10 +131,62 @@ class SpellParser:
             'shell_type': config.get('shell_type', 'python'),
             'entry_point': config.get('entry_point'),
             'parameters': config.get('parameters', {}),
-            'dependencies': config.get('dependencies', {}),
+            'dependencies': dependencies,
             'created_at': '',  # Set during bundling
             'sigil_hash': None  # Calculated during bundling
         }
+        return metadata
+
+    @staticmethod
+    def check_dependencies(dependencies: Dict[str, List[str]]) -> bool:
+        """Check if required dependencies are installed."""
+        if not dependencies or 'python' not in dependencies:
+            return True
+            
+        python_deps = dependencies['python']
+        if not python_deps:
+            return True
+            
+        missing_deps = []
+        
+        try:
+            import importlib.util
+            
+            for dep in python_deps:
+                pkg_name = dep.split('>=')[0].split('~=')[0].split('==')[0].strip()
+                try:
+                    spec = importlib.util.find_spec(pkg_name)
+                    if spec is None:
+                        missing_deps.append(dep)
+                except ImportError:
+                    missing_deps.append(dep)
+                    
+            if missing_deps:
+                click.echo("\nMissing required packages:")
+                for dep in missing_deps:
+                    click.echo(f"  - {dep}")
+                    
+                if click.confirm("\nWould you like to install these dependencies now?", default=True):
+                    try:
+                        click.echo("\nInstalling dependencies...")
+                        subprocess.run([sys.executable, '-m', 'pip', 'install', *missing_deps], check=True)
+                        click.echo("Dependencies installed successfully.")
+                        return True
+                    except subprocess.CalledProcessError as e:
+                        click.echo(f"Warning: Failed to install dependencies: {e}")
+                        if not click.confirm("\nWould you like to continue without installing dependencies?", default=False):
+                            return False
+                elif not click.confirm("\nWould you like to continue without installing dependencies?", default=False):
+                    return False
+                    
+            click.echo("All required packages are installed.")
+            return True
+            
+        except Exception as e:
+            click.echo(f"Warning: Failed to check dependencies: {e}")
+            if not click.confirm("\nWould you like to continue without checking dependencies?", default=False):
+                return False
+            return True
 
     @staticmethod
     def calculate_sigil_hash(spell_path: Path) -> str:
@@ -186,6 +262,11 @@ class SpellParser:
             # Extract and validate the spell bundle
             temp_dir, metadata = SpellParser.parse_bundle(Path(spell_file_path))
             try:
+                # Check dependencies before execution
+                if not SpellParser.check_dependencies(metadata.get('dependencies', {})):
+                    click.echo("Cannot execute spell: missing required dependencies")
+                    return False
+                
                 # Execute the spell based on type and shell
                 spell_type = metadata.get('type')
                 shell_type = metadata.get('shell_type')
