@@ -1,0 +1,6 @@
+description: Display greetings in multiple languages
+entry_point: spell/greetings.py
+name: greetings
+shell_type: python
+type: bundled
+version: 1.0.0
