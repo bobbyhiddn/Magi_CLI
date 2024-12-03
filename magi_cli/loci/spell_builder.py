@@ -20,6 +20,10 @@ class SpellBuilder:
         self.yaml_path = yaml_path
         self.temp_dir = Path(tempfile.mkdtemp(prefix='spell_builder_'))
         
+        # Add tome_dir for compatibility
+        self.tome_dir = Path(SANCTUM_PATH) / '.tome'
+        self.tome_dir.mkdir(parents=True, exist_ok=True)
+
     def _fetch_artifact(self, artifact_config: Dict[str, Any], base_path: Path) -> None:
         """Fetch an artifact from various sources."""
         # Ensure artifacts go into the artifacts directory
@@ -93,142 +97,66 @@ class SpellBuilder:
         yaml_path = self.yaml_path
         if yaml_path.is_dir():
             yaml_path = yaml_path / 'spell' / 'spell.yaml'
+            if not yaml_path.exists():
+                yaml_path = self.yaml_path / 'spell.yaml'
             click.echo(f"\nCreating spell bundle:")
             
         # Load and validate YAML
         with open(yaml_path) as f:
             config = yaml.safe_load(f)
             
-        click.echo(f"- Name: {config.get('name')}")
-        click.echo(f"- Type: {config.get('type')}")
-        click.echo(f"- Entry point: {config.get('entry_point')}")
+        click.echo(f"- Name: {config.get('name', 'Unnamed Spell')}")
+        click.echo(f"- Type: {config.get('type', 'script')}")
+        click.echo(f"- Entry point: {config.get('entry_point', 'None')}")
 
-        required_fields = ['name', 'description', 'type', 'shell_type']
-        missing = [field for field in required_fields if field not in config]
-        if missing:
-            raise ValueError(f"Missing required fields in YAML: {', '.join(missing)}")
+        # Set default values if not provided
+        config.setdefault('name', yaml_path.stem)
+        config.setdefault('description', 'No description provided')
+        config.setdefault('type', 'script')
+        config.setdefault('shell_type', 'python')
+        config.setdefault('version', '1.0.0')
 
         # Create spell directory structure
         spell_dir = self.temp_dir / config['name']
-        spell_dir.mkdir(parents=True)
+        spell_dir.mkdir(parents=True, exist_ok=True)
         spell_subdir = spell_dir / 'spell'
-        spell_subdir.mkdir()
+        spell_subdir.mkdir(parents=True, exist_ok=True)
         artifacts_dir = spell_dir / 'artifacts'
-        artifacts_dir.mkdir()
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
 
-        # Handle dependencies if specified
-        requires = config.get('requires', [])
-        if not isinstance(requires, list):
-            click.echo(f"Warning: requires field is not a list: {requires}")
-            if isinstance(requires, str):
-                requires = [requires]
-            else:
-                requires = []
-            
-        if requires:
-            # Create requirements.txt in the spell directory
-            requirements_path = spell_dir / 'requirements.txt'
-            requirements_path.write_text('\n'.join(requires))
-            
-            # Convert to standardized metadata format and update config
-            config['dependencies'] = {'python': requires}
-            
-            # Check for missing dependencies
-            try:
-                import importlib.util
-                missing_deps = []
-                
-                for dep in requires:
-                    pkg_name = dep.split('>=')[0].split('~=')[0].split('==')[0].strip()
-                    try:
-                        spec = importlib.util.find_spec(pkg_name)
-                        if spec is None:
-                            missing_deps.append(dep)
-                    except ImportError:
-                        missing_deps.append(dep)
-                        
-                if missing_deps:
-                    click.echo("\nMissing required packages:")
-                    for dep in missing_deps:
-                        click.echo(f"  - {dep}")
-                        
-                    if click.confirm("\nWould you like to install these dependencies now?", default=True):
-                        try:
-                            click.echo("\nInstalling dependencies...")
-                            subprocess.run([sys.executable, '-m', 'pip', 'install', *missing_deps], check=True)
-                            click.echo("Dependencies installed successfully.")
-                        except subprocess.CalledProcessError as e:
-                            click.echo(f"Warning: Failed to install dependencies: {e}")
-                            if not click.confirm("\nWould you like to continue without installing dependencies?", default=False):
-                                raise ValueError("Cannot proceed: missing required dependencies")
-                    elif not click.confirm("\nWould you like to continue without installing dependencies?", default=False):
-                        raise ValueError("Cannot proceed: missing required dependencies")
-                        
-            except Exception as e:
-                click.echo(f"Warning: Could not check dependencies: {e}")
-                if not click.confirm("\nWould you like to continue without checking dependencies?", default=False):
-                    raise ValueError("Cannot proceed: unable to check dependencies")
-
-        # Handle source files for directory-based spells
-        if self.yaml_path.is_dir():
-            click.echo(f"- Base dir: {spell_dir}")
-            click.echo(f"- Created nested dir: {spell_subdir}")
-            
-            # Copy entry point script, handling spell/ prefix
-            entry_point = config.get('entry_point', 'analyzer.py')
-            entry_point = entry_point.replace('spell/', '')  # Remove spell/ prefix if present
-            
-            # Try both with and without spell/ directory
-            source_script = self.yaml_path / 'spell' / entry_point
-            if not source_script.exists():
-                source_script = self.yaml_path / entry_point
-                if not source_script.exists():
-                    raise ValueError(f"Entry point script not found at {source_script} or {self.yaml_path / 'spell' / entry_point}")
-                    
-            target_script = spell_subdir / entry_point.split('/')[-1]
-            
-            click.echo(f"- Moving from: {source_script}")
-            click.echo(f"- Moving to: {target_script}")
-            shutil.copy2(source_script, target_script)
-            
-            # Copy spell.yaml
-            click.echo("- Writing spell.yaml")
-            yaml_path = self.yaml_path / 'spell' / 'spell.yaml'
-            if not yaml_path.exists():
-                yaml_path = self.yaml_path / 'spell.yaml'
-                if not yaml_path.exists():
-                    raise ValueError(f"spell.yaml not found at {yaml_path} or {self.yaml_path / 'spell' / 'spell.yaml'}")
-            shutil.copy2(yaml_path, spell_subdir / 'spell.yaml')
-            
-            # Copy artifacts if they exist
-            source_artifacts = self.yaml_path / 'artifacts'
-            if source_artifacts.exists():
-                shutil.copytree(source_artifacts, artifacts_dir, dirs_exist_ok=True)
-        else:
-            # Handle inline code case
-            if 'code' not in config:
-                raise ValueError("No code specified in YAML")
-                
+        # Handle inline code case
+        if 'code' in config:
             # Determine file extension based on shell_type
-            ext = '.py' if config['shell_type'] == 'python' else '.sh'
+            ext = '.py' if config.get('shell_type', 'python') == 'python' else '.sh'
             main_script = f"main{ext}"
             script_path = spell_subdir / main_script
             script_path.write_text(config['code'])
-            if config['shell_type'] != 'python':
+            
+            # Make script executable for non-python scripts
+            if config.get('shell_type', 'python') != 'python':
                 script_path.chmod(0o755)
+            
+            # Update entry point
+            config['entry_point'] = main_script
 
-            # Handle artifacts if specified in YAML
-            if 'artifacts' in config:
-                for artifact in config['artifacts']:
-                    self._fetch_artifact(artifact, spell_dir)
+        # Ensure entry point exists
+        if not config.get('entry_point'):
+            raise ValueError("No entry point specified or generated")
 
-        # Create bundle
-        bundle = SpellBundle(spell_dir)
-        tome_dir = Path(SANCTUM_PATH) / '.tome'
-        tome_dir.mkdir(parents=True, exist_ok=True)
-        return bundle.create_bundle(tome_dir)
+        # Write spell.yaml to the spell subdirectory
+        spell_yaml_path = spell_subdir / 'spell.yaml'
+        with open(spell_yaml_path, 'w') as f:
+            yaml.safe_dump(config, f, default_flow_style=False)
+
+        # Create spell bundle
+        spell_bundle = SpellBundle(spell_dir)
+        
+        # Use SpellBundle to generate sigil and create bundle
+        bundle_path = spell_bundle.create_bundle(self.tome_dir)
+        
+        return bundle_path
 
     def __del__(self):
         """Clean up temporary directory."""
-        if hasattr(self, 'temp_dir') and self.temp_dir.exists():
+        if self.temp_dir and self.temp_dir.exists():
             shutil.rmtree(self.temp_dir)

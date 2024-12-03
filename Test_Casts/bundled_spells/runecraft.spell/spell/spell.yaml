@@ -4,3 +4,10 @@ name: runecraft
 shell_type: python
 type: bundled
 version: 1.0.0
+dependencies:
+  - click
+  - requests
+  - Pillow
+  - openai
+  - PyQt5
+  - jinja2

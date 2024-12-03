@@ -30,7 +30,8 @@ def execute_python_file(filename, args):
 
 @click.command()
 @click.argument('input', nargs=-1)
-def cast(input, **kwargs):
+@click.option('--verbose', '-v', count=True, help='Increase output verbosity. Use -v or -vv')
+def cast(input, verbose, **kwargs):
     input = list(input)  # Convert input into a list to separate command and arguments
 
     # Use SANCTUM_PATH for the .tome directory
@@ -72,7 +73,7 @@ def cast(input, **kwargs):
         # Use SpellParser to execute the spell file
         spell_name = input[0]
         args = input[1:] if len(input) > 1 else []
-        success = SpellParser.execute_spell_file(spell_name, args)
+        success = SpellParser.execute_spell_file(spell_name, *args, verbose=verbose)
         if not success:
             print(f"Error: Failed to execute spell '{spell_name}'.")
 

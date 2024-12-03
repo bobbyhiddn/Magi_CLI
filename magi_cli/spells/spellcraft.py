@@ -19,6 +19,13 @@ class SpellRecipe:
     """Handles the creation and bundling of different spell types."""
     
     def __init__(self, spell_name: str, spell_type: str):
+        """
+        Initialize a spell recipe.
+        
+        Args:
+            spell_name (str): Name of the spell
+            spell_type (str): Type of the spell (e.g., 'macro', 'script', 'bundled')
+        """
         self.spell_name = spell_name
         self.spell_type = spell_type
         self.temp_dir = Path(tempfile.mkdtemp(prefix='spell_recipe_'))
@@ -34,6 +41,10 @@ class SpellRecipe:
         self.artifacts_dir.mkdir(parents=True, exist_ok=True)
         self.spell_subdir = self.spell_dir / 'spell'
         self.spell_subdir.mkdir(parents=True, exist_ok=True)
+        
+        # Add tome_dir attribute
+        self.tome_dir = Path(SANCTUM_PATH) / '.tome'
+        self.tome_dir.mkdir(parents=True, exist_ok=True)
 
     def _generate_metadata(self, description: str, entry_point: str, shell_type: str = "python") -> dict:
         """Generate standard metadata for the spell."""
@@ -46,9 +57,6 @@ class SpellRecipe:
             "entry_point": entry_point,
             "version": "1.0.0"
         }
-        # Generate hash for sigil
-        hash_input = f"{self.spell_name}_{description}_{self.spell_type}"
-        metadata["sigil_hash"] = hashlib.md5(hash_input.encode()).hexdigest()
         return metadata
 
     def _create_yaml_config(self, metadata: dict, additional_config: Optional[Dict] = None) -> None:
@@ -91,6 +99,7 @@ class SpellRecipe:
             response.raise_for_status()
             path.write_bytes(response.content)
 
+        # TODO: Investigate and test 
         elif source_type == 'git':
             # Clone from git repository
             import git
@@ -130,6 +139,8 @@ class SpellRecipe:
         else:
             raise ValueError(f"Unknown source type: {source_type}")
 
+
+    # TODO: Is this a duplicate of _fetch_artifact?
     def _fetch_remote_artifact(self, url: str, filename: str) -> Path:
         """Fetch a remote artifact and save it to the artifacts directory."""
         response = requests.get(url)
@@ -140,7 +151,7 @@ class SpellRecipe:
         return artifact_path
 
     def create_bundled_spell(self, source_dir: Path, description: str = None) -> Path:
-        """Create a bundled spell from an existing directory."""
+        """Create a bundled spell from an existing directory that ends in '.spell/'."""
         # Check for existing spell.yaml and use its config if available
         yaml_path = source_dir / 'spell' / 'spell.yaml'
         if yaml_path.exists():
@@ -200,15 +211,16 @@ class SpellRecipe:
                             missing_deps.append(dep)
                             
                     if missing_deps:
-                        click.echo("\nMissing required packages:")
-                        for dep in missing_deps:
-                            click.echo(f"  - {dep}")
-                            
+                        if click.get_current_context().params.get('verbose', False):
+                            click.echo("\nMissing required packages:")
+                            for dep in missing_deps:
+                                click.echo(f"  - {dep}")
+                        
                         if click.confirm("\nWould you like to install these dependencies now?", default=True):
                             try:
-                                click.echo("\nInstalling dependencies...")
                                 subprocess.run([sys.executable, '-m', 'pip', 'install', *missing_deps], check=True)
-                                click.echo("Dependencies installed successfully.")
+                                if click.get_current_context().params.get('verbose', False):
+                                    click.echo("Dependencies installed successfully.")
                             except subprocess.CalledProcessError as e:
                                 click.echo(f"Warning: Failed to install dependencies: {e}")
                                 if not click.confirm("\nWould you like to continue without installing dependencies?", default=False):
@@ -270,32 +282,59 @@ class SpellRecipe:
         return self._bundle_spell(metadata)
 
     def create_macro_spell(self, commands: List[str], description: str) -> Path:
-        """Create a macro spell from a list of commands."""
-        # Create .fiat file
-        fiat_path = self.spell_subdir / f"{self.spell_name}.fiat"
-        with open(fiat_path, 'w', newline='\n') as f:
-            f.write("#!/bin/bash\n\n")
+        """
+        Create a macro spell with a list of commands.
+        
+        Args:
+            commands (List[str]): List of commands to execute
+            description (str): Description of the macro spell
+        
+        Returns:
+            Path: Path to the created spell bundle
+        """
+
+        #TODO: We need to generate metadata for macro spells better
+        # Prepare metadata
+        metadata = {
+            'name': self.spell_name,
+            'description': description,
+            'type': 'macro',
+            'shell_type': 'bash',
+            'version': '1.0.0',
+            'commands': commands,  # Store commands in metadata
+            'entry_point': 'macro_script.sh'
+        }
+
+
+        # TODO: We need to generalize this structure and make it more dynamic across all spell types
+        # Create spell directory structure
+        spell_dir = self.temp_dir / self.spell_name
+        spell_dir.mkdir(parents=True, exist_ok=True)
+        spell_subdir = spell_dir / 'spell'
+        spell_subdir.mkdir(parents=True, exist_ok=True)
+        artifacts_dir = spell_dir / 'artifacts'
+        artifacts_dir.mkdir(parents=True, exist_ok=True)
+
+        # Create macro script
+        macro_script_path = spell_subdir / 'macro.sh'
+        with open(macro_script_path, 'w') as f:
+            f.write('#!/bin/bash\n')
             for cmd in commands:
                 f.write(f"{cmd}\n")
-        fiat_path.chmod(0o755)  # Make executable
-
-        # Create metadata and config
-        entry_point = f"spell/{self.spell_name}.fiat"
-        metadata = self._generate_metadata(description, entry_point, "shell")
         
-        # Add additional configuration for macro spells
-        additional_config = {
-            'type': 'macro',
-            'shell_type': 'shell',
-            'commands': commands,  # Store original commands for reference
-        }
-        self._create_yaml_config(metadata, additional_config)
+        # Make script executable
+        macro_script_path.chmod(0o755)
         
-        # Create the bundle
-        bundle = SpellBundle(self.spell_dir)
-        tome_dir = Path(SANCTUM_PATH) / '.tome'
-        tome_dir.mkdir(parents=True, exist_ok=True)
-        return bundle.create_bundle(tome_dir)
+        # Write spell.yaml
+        yaml_path = spell_subdir / 'spell.yaml'
+        with open(yaml_path, 'w') as f:
+            yaml.safe_dump(metadata, f, default_flow_style=False)
+        
+        # Create spell bundle
+        spell_bundle = SpellBundle(spell_dir)
+        bundle_path = spell_bundle.create_bundle(self.tome_dir)
+        
+        return bundle_path
 
     def create_script_spell(self, script_path: Path, description: str) -> Path:
         """Create a spell from a Python or Shell script."""
@@ -308,6 +347,7 @@ class SpellRecipe:
         if shell_type == "bash":
             spell_script_path.chmod(0o755)
 
+        # TODO: This looks like a better method of creating metadata
         # Create metadata and config
         metadata = self._generate_metadata(description, f"spell/{script_path.name}", shell_type)
         self._create_yaml_config(metadata)
@@ -317,11 +357,8 @@ class SpellRecipe:
     def _bundle_spell(self, metadata: dict) -> Path:
         """Bundle the spell directory into a .spell file."""
         bundle = SpellBundle(self.spell_dir)
-        tome_dir = Path(SANCTUM_PATH) / '.tome'
-        tome_dir.mkdir(parents=True, exist_ok=True)
-        
         try:
-            return bundle.create_bundle(tome_dir)
+            return bundle.create_bundle(self.tome_dir)
         finally:
             shutil.rmtree(self.temp_dir)
 
@@ -335,7 +372,8 @@ def get_success_message(message: str) -> str:
 
 @click.command()
 @click.argument('args', nargs=-1)
-def spellcraft(args):
+@click.option('-v', '--verbose', is_flag=True, help='Enable verbose output')
+def spellcraft(args, verbose):
     """Craft different types of spells based on input."""
     try:
         if not args:
@@ -345,6 +383,7 @@ def spellcraft(args):
                       "  cast sc <config.yaml>                      # For YAML configurations")
             return
 
+        # TODO: Create a way to retrieve the last X commands and create a macro spell
         # Handle macro spell creation
         try:
             num_commands = int(args[0])
