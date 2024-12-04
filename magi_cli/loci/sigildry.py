@@ -374,9 +374,14 @@ class Sigildry:
                     print(f"  Stored:  {stored_hash}")
                     print(f"  Current: {current_hash}")
                 
+                if current_hash != stored_hash:
+                    print(f"Sigil hash mismatch! Spell has been tampered with.\nStored: {stored_hash}\nCurrent: {current_hash}")
+                    import sys
+                    sys.exit(1)
+
                 return {
-                    'verified': current_hash == stored_hash,
-                    'verification_status': 'Verified' if current_hash == stored_hash else 'Hash Mismatch',
+                    'verified': True,
+                    'verification_status': 'Verified',
                     'metadata': metadata,
                     'current_hash': current_hash,
                     'stored_hash': stored_hash

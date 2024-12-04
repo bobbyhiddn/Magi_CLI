@@ -5,32 +5,49 @@ shell_type: shell
 
 code: |
   #!/bin/bash
+
+  # Detect operating system
+  OS="$(uname -s)"
   
-  # Source our utility functions
-  source "$(dirname "$0")/../artifacts/lib/utils.sh"
-  
-  # Print header
-  echo "=== System Health Check ==="
-  echo "Running checks at $(date)"
-  
-  # Check disk space
-  echo -e "\nDisk Space Usage:"
-  df -h | grep -E '^/dev'
-  
-  # Check memory
-  echo -e "\nMemory Usage:"
-  free -h
-  
-  # Check CPU load
-  echo -e "\nCPU Load:"
-  uptime
-  
-  # Check running services
-  echo -e "\nKey Services Status:"
-  services=$(cat "$(dirname "$0")/../artifacts/config/services.txt")
-  for service in $services; do
-    echo "- $service: $(systemctl is-active $service 2>/dev/null || echo 'not found')"
-  done
+  if [ "$OS" = "Linux" ]; then
+    # Linux commands
+    echo "Running on Linux system"
+
+    echo -e "\nDisk Space Usage:"
+    df -h | grep -E '^/dev'
+
+    echo -e "\nMemory Usage:"
+    free -h
+
+    echo -e "\nCPU Load:"
+    uptime
+
+    echo -e "\nKey Services Status:"
+    services=$(cat "$(dirname "$0")/../artifacts/config/services.txt")
+    for service in $services; do
+      echo "- $service: $(systemctl is-active $service 2>/dev/null || echo 'not found')"
+    done
+  elif [ "$OS" = "MINGW64_NT-10.0" ]; then
+    # Windows commands
+    echo "Running on Windows system"
+
+    echo -e "\nDisk Space Usage:"
+    wmic logicaldisk get size,freespace,caption
+
+    echo -e "\nMemory Usage:"
+    wmic OS get TotalVisibleMemorySize,FreePhysicalMemory
+
+    echo -e "\nCPU Load:"
+    wmic cpu get loadpercentage
+
+    echo -e "\nKey Services Status:"
+    services=$(cat "$(dirname "$0")/../artifacts/config/services.txt")
+    for service in $services; do
+      echo "- $service: $(sc query $service | findstr /C:\"STATE\" || echo 'not found')"
+    done
+  else
+    echo "Unsupported operating system: $OS"
+  fi
   
   # Print summary
   cat "$(dirname "$0")/../artifacts/templates/summary.txt"
