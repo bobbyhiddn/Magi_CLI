@@ -27,49 +27,36 @@ class SpellParser:
         """
         Parse a spell bundle into a temporary directory and return the path and metadata.
         """
+        import tempfile
+        import zipfile
+        import yaml  # Make sure yaml is imported
+        import json  # Import json for spell.json
+        import os
+
         # Create a temporary directory
         temp_dir = Path(tempfile.mkdtemp(prefix='magi_spell_'))
 
         # Extract the spell bundle
         with zipfile.ZipFile(spell_path, 'r') as zip_ref:
-            # Get list of files
-            files = zip_ref.namelist()
-            
-            # Extract files, removing any top-level directory
-            for file in files:
-                parts = Path(file).parts
-                
-                # Skip directories, they'll be created when extracting files
-                if file.endswith('/'):
-                    continue
-                
-                # Remove top-level directory if present
-                if parts[0] == 'ascii_art':
-                    target_path = temp_dir / Path(*parts[1:])
-                else:
-                    target_path = temp_dir / file
-                
-                # Ensure parent directory exists
-                target_path.parent.mkdir(parents=True, exist_ok=True)
-                
-                # Extract file
-                with zip_ref.open(file) as source, open(target_path, 'wb') as target:
-                    shutil.copyfileobj(source, target)
+            zip_ref.extractall(temp_dir)
 
-        # Find and parse metadata from spell.yaml first (primary source)
-        yaml_path = temp_dir / 'spell' / 'spell.yaml'
+        # Initialize metadata
         metadata = {}
-        
+
+        # Load spell.yaml or spell.json
+        yaml_path = temp_dir / 'spell' / 'spell.yaml'
+        json_path = temp_dir / 'spell' / 'spell.json'
+
         if yaml_path.exists():
-            with open(yaml_path) as f:
-                import yaml
-                metadata = yaml.safe_load(f)
-                
-            # Update spell.json to match spell.yaml
-            json_path = temp_dir / 'spell.json'
-            if json_path.exists():
-                with open(json_path, 'w') as f:
-                    json.dump(metadata, f, indent=2)
+            with open(yaml_path, 'r') as f:
+                config = yaml.safe_load(f)
+                metadata = SpellParser._convert_yaml_to_metadata(config)
+        elif json_path.exists():
+            with open(json_path, 'r') as f:
+                config = json.load(f)
+                metadata = SpellParser._convert_yaml_to_metadata(config)
+        else:
+            raise FileNotFoundError("No metadata file (spell.yaml or spell.json) found in the spell.")
 
         # Verify spell sigil using Sigildry
         sigil_verification = Sigildry.verify_sigil(spell_path)
@@ -82,18 +69,11 @@ class SpellParser:
             'current_hash': sigil_verification.get('current_hash'),
             'stored_hash': sigil_verification.get('stored_hash')
         }
-        
-        # Validate and set default metadata
+
+        # Validate metadata
         SpellParser._validate_metadata(metadata)
-        
-        # Check dependencies
-        if not SpellParser.check_dependencies(metadata.get('dependencies', {})):
-            raise ValueError("Cannot proceed: missing required dependencies")
-        
-        # Ensure requires/dependencies are consistent
-        if 'requires' not in metadata and 'dependencies' in metadata:
-            metadata['requires'] = metadata['dependencies'].get('python', [])
-        
+
+        # Return the temporary directory and metadata
         return temp_dir, metadata
                 
     @staticmethod
@@ -284,8 +264,7 @@ class SpellParser:
                 click.echo(f"Error: Spell '{spell_name}' not found in tome.")
                 return False
             
-            # Verify spell sigil
-            from magi_cli.loci.sigildry import Sigildry
+            # Verify spell sigil using Sigildry
             sigil_verification = Sigildry.verify_sigil(spell_path)
             
             # Parse the spell bundle
@@ -318,24 +297,28 @@ class SpellParser:
                 click.echo(f"Type: {metadata.get('type', 'Unknown')}")
                 click.echo(f"Shell Type: {metadata.get('shell_type', 'Unknown')}")
             
-            # Special handling for macro spells
-            if metadata.get('type') == 'macro':
-                # For macro spells, create and execute a temporary shell script
-                macro_script = temp_dir / 'macro_script.sh'
-                with open(macro_script, 'w') as f:
-                    f.write('#!/bin/bash\n')
-                    for cmd in metadata.get('commands', []):
-                        f.write(f"{cmd}\n")
+            # # Special handling for macro spells
+            # if metadata.get('type') == 'macro':
+            #     # For macro spells, create and execute a temporary shell script
+            #     macro_script = temp_dir / 'macro_script.sh'
+            #     with open(macro_script, 'w') as f:
+            #         f.write('#!/bin/bash\n')
+            #         for cmd in metadata.get('commands', []):
+            #             f.write(f"{cmd}\n")
                 
-                # Make script executable
-                macro_script.chmod(0o755)
+            #     # Make script executable
+            #     macro_script.chmod(0o755)
                 
-                # Execute the macro script using system shell
-                exit_code = os.system(f"bash {macro_script}")
-                if exit_code != 0:
-                    click.echo(f"Macro spell execution failed with code {exit_code}")
-                    return False
-                return True
+
+            #     # Verify spell sigil using Sigildry
+            #     sigil_verification = Sigildry.verify_sigil(spell_path)
+
+            #     # Execute the macro script using system shell
+            #     exit_code = os.system(f"bash {macro_script}")
+            #     if exit_code != 0:
+            #         click.echo(f"Macro spell execution failed with code {exit_code}")
+            #         return False
+            #     return True
             
             # For other spell types, locate the entry point script
             entry_point_name = metadata.get('entry_point')
