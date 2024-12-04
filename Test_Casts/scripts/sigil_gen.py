@@ -159,6 +159,10 @@ def generate_starburst_spell_svg(hash_input: str, output_path: str) -> None:
     
     params = hash_to_params(hash_input)
     
+
+    # Generate random color
+    color = f"#{hash_input[:6]}"
+
     # First add the stone grey background between circles
     dwg.add(dwg.circle(
         center=(center, center),
@@ -169,7 +173,7 @@ def generate_starburst_spell_svg(hash_input: str, output_path: str) -> None:
     dwg.add(dwg.circle(
         center=(center, center),
         r=inner_radius,
-        fill="white",
+        fill=color,
         stroke="none"
     ))
     

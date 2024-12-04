@@ -84,17 +84,6 @@ class SpellBuilder:
            response = requests.get(location)
            response.raise_for_status()
            path.write_bytes(response.content)
-       elif source_type == 'git':
-           temp_dir = Path(tempfile.mkdtemp())
-           repo = git.Repo.clone_from(location, temp_dir)
-           if 'ref' in source:
-               repo.git.checkout(source['ref'])
-           
-           source_path = temp_dir / source.get('file', '')
-           if path.exists():
-               shutil.rmtree(path)
-           shutil.copytree(source_path, path) if not source.get('file') else shutil.copy2(source_path, path)
-           shutil.rmtree(temp_dir)
        elif source_type == 'file':
            source_path = Path(location).expanduser().resolve()
            if not source_path.exists():

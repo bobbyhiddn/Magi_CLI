@@ -91,9 +91,12 @@ class Sigildry:
         
         params = self._hash_to_params(hash_input)
         
+        # Generate random color
+        circle_color = f"#{hash_input[6:12]}"
+
         # Add stone grey background between circles
         dwg.add(dwg.circle(center=(center, center), r=outer_radius, fill="#E0E0E0", stroke="none"))
-        dwg.add(dwg.circle(center=(center, center), r=inner_radius, fill="white", stroke="none"))
+        dwg.add(dwg.circle(center=(center, center), r=inner_radius, fill=circle_color, stroke="none"))
         
         # Add boundary circles
         for radius in (outer_radius, inner_radius):
