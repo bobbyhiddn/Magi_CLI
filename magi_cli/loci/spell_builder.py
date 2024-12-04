@@ -148,12 +148,17 @@ class SpellBuilder:
         with open(spell_yaml_path, 'w') as f:
             yaml.safe_dump(config, f, default_flow_style=False)
 
-        # Create spell bundle
-        spell_bundle = SpellBundle(spell_dir)
-        
-        # Use SpellBundle to generate sigil and create bundle
-        bundle_path = spell_bundle.create_bundle(self.tome_dir)
-        
+        # Create spell bundle using unified method
+        bundle = SpellBundle(spell_dir)  
+        bundle_path = bundle.create_spell_bundle(
+            spell_name=config['name'],
+            spell_type=config['type'],
+            shell_type=config.get('shell_type', 'python'),
+            entry_point=config['entry_point'],
+            description=config['description'],
+            spell_dir=spell_subdir,  
+            verify_structure=False  
+        )
         return bundle_path
 
     def __del__(self):

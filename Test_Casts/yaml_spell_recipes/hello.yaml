@@ -2,6 +2,8 @@ name: hello
 description: A simple greeting spell
 type: script
 shell_type: python
+version: "1.0.0"
+entry_point: main.py
 
 # The spell implementation
 code: |

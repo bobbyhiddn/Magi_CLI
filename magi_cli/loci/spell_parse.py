@@ -330,23 +330,12 @@ class SpellParser:
                 # Make script executable
                 macro_script.chmod(0o755)
                 
-                # Execute the macro script
-                try:
-                    result = subprocess.run(['bash', str(macro_script)], capture_output=True, text=True)
-                    if result.stdout:
-                        click.echo(result.stdout)
-                    if result.stderr:
-                        click.echo(result.stderr, err=True)
-                    if result.returncode != 0:
-                        click.echo(f"Macro spell execution failed with code {result.returncode}")
-                        return False
-                    return True
-                except subprocess.CalledProcessError as e:
-                    click.echo(f"Error executing macro spell: {e}")
+                # Execute the macro script using system shell
+                exit_code = os.system(f"bash {macro_script}")
+                if exit_code != 0:
+                    click.echo(f"Macro spell execution failed with code {exit_code}")
                     return False
-                except FileNotFoundError:
-                    click.echo("Bash shell not found")
-                    return False
+                return True
             
             # For other spell types, locate the entry point script
             entry_point_name = metadata.get('entry_point')
@@ -403,22 +392,11 @@ class SpellParser:
                         return False
                 
                 elif shell_type in ['bash', 'shell']:
-                    # Use subprocess to run shell script
-                    result = subprocess.run(
-                        ['bash', str(entry_point), *args], 
-                        capture_output=True, 
-                        text=True
-                    )
+                    # Use os.system to run shell script
+                    exit_code = os.system(f"bash {entry_point}")
                     
-                    # Handle shell script output
-                    if result.stdout:
-                        click.echo(result.stdout)
-                    if result.stderr:
-                        click.echo(result.stderr, err=True)
-                    
-                    # Check return code
-                    if result.returncode != 0:
-                        click.echo(f"Shell spell execution failed with code {result.returncode}")
+                    if exit_code != 0:
+                        click.echo(f"Shell spell execution failed with code {exit_code}")
                         return False
                 
                 else:
@@ -516,7 +494,7 @@ class SpellParser:
     @staticmethod
     def execute_bash_file(script_path: str, verbose: bool = False) -> bool:
         """
-        Execute a bash script with platform-specific handling.
+        Execute a bash script using the system shell.
         
         Args:
             script_path (str): Path to the bash script
@@ -529,38 +507,23 @@ class SpellParser:
             # Make script executable
             Path(script_path).chmod(0o755)
             
-            # Prepare command
-            cmd = ['bash', str(script_path)]
-            
             if verbose:
-                # Detailed command execution logging
                 click.echo(click.style("Bash Script Execution:", fg='bright_cyan', bold=True))
                 click.echo(f"  {click.style('Script Path:', fg='bright_white')} {script_path}")
-                click.echo(f"  {click.style('Command:', fg='bright_white')} {' '.join(cmd)}")
             
-            # Run the script
-            result = subprocess.run(cmd, capture_output=verbose, text=verbose)
+            # Execute using system shell
+            exit_code = os.system(f"bash {script_path}")
             
-            # If verbose, show output
-            if verbose and result.stdout:
-                click.echo(click.style("\nScript Output:", fg='bright_cyan', bold=True))
-                click.echo(result.stdout)
-            
-            # Check for errors
-            if result.returncode != 0:
-                if verbose and result.stderr:
+            if exit_code != 0:
+                if verbose:
                     click.echo(click.style("\nScript Execution Error:", fg='bright_red', bold=True))
-                    click.echo(result.stderr)
+                    click.echo(f"Exit code: {exit_code}")
                 return False
             
             return True
-        
-        except subprocess.CalledProcessError as e:
+            
+        except Exception as e:
             if verbose:
                 click.echo(click.style("Failed to execute script", fg='bright_red', bold=True))
                 click.echo(str(e))
-            return False
-        except FileNotFoundError:
-            if verbose:
-                click.echo(click.style("Bash shell not found", fg='bright_red', bold=True))
             return False

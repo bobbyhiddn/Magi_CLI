@@ -6,13 +6,22 @@ import math
 import svgwrite
 import hashlib
 from pathlib import Path
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Union
 import json
 import yaml
 import tempfile
 import zipfile
+from enum import Enum
 
 from magi_cli.spells import SANCTUM_PATH
+
+class SpellType(Enum):
+    SCRIPT = 'script'
+    BUNDLE = 'bundle'
+
+class ShellType(Enum):
+    PYTHON = 'python'
+    BASH = 'bash'
 
 class Sigildry:
     """
@@ -192,60 +201,58 @@ class Sigildry:
 
     @staticmethod
     def generate_sigil_hash(
-        spell_name: str, 
-        description: str = '', 
-        spell_type: str = 'generic',
-        version: str = '1.0.0',
-        entry_point: str = '',
-        shell_type: str = '',
-        spell_dir: Optional[Path] = None
+        spell_name: str,
+        description: str,
+        spell_type: Union[SpellType, str],
+        version: str,
+        entry_point: str,
+        shell_type: Union[ShellType, str],
+        spell_dir: Path
     ) -> str:
         """
-        Generate a deterministic hash for a spell sigil.
+        Generate a hash for a spell's sigil.
         
         Args:
             spell_name (str): Name of the spell
-            description (str, optional): Description of the spell
-            spell_type (str, optional): Type of the spell
-            version (str, optional): Version of the spell
-            entry_point (str, optional): Entry point of the spell
-            shell_type (str, optional): Shell type of the spell
-            spell_dir (Path, optional): Directory containing spell files
-        
+            description (str): Description of the spell
+            spell_type (Union[SpellType, str]): Type of spell
+            version (str): Version of the spell
+            entry_point (str): Entry point file path
+            shell_type (Union[ShellType, str]): Shell type for the spell
+            spell_dir (Path): Directory containing spell files
+            
         Returns:
-            str: A unique hash for sigil generation
+            str: Generated hash for the sigil
         """
-        # Create a hash object
+        # Normalize types
+        if isinstance(spell_type, str):
+            spell_type = getattr(SpellType, spell_type.upper(), SpellType.SCRIPT)
+        if isinstance(shell_type, str):
+            shell_type = getattr(ShellType, shell_type.upper(), ShellType.PYTHON)
+
+        # Create hasher
         hasher = hashlib.sha256()
 
-        # Combine metadata to create initial hash input
-        metadata_input = f"{spell_name}|{description}|{spell_type}|{version}|{entry_point}|{shell_type}"
-        hasher.update(metadata_input.encode('utf-8'))
+        # Add metadata to hash in a consistent order
+        metadata_str = f"{spell_name}\n{description}\n{spell_type}\n{version}\n{entry_point}\n{shell_type}"
+        hasher.update(metadata_str.encode())
 
-        # If a spell directory is provided, include file contents in hash
-        if spell_dir and spell_dir.is_dir():
-            # Relevant file extensions to include in hash
-            relevant_extensions = ['.py', '.sh', '.yaml', '.json', '.txt']
-            
-            # Collect files, sorted to ensure consistent ordering
-            files_to_hash = []
-            for file_path in spell_dir.rglob('*'):
-                if file_path.is_file() and file_path.suffix.lower() in relevant_extensions:
-                    files_to_hash.append(file_path)
-            
-            # Sort files to ensure consistent hash generation
-            files_to_hash.sort()
+        # Add file contents to hash in a consistent order
+        for file_path in sorted(spell_dir.rglob('*')):
+            if file_path.is_file():
+                # Skip metadata and sigil files
+                if file_path.name in ['spell.json', 'spell.yaml'] or file_path.name.endswith('_sigil.svg'):
+                    continue
+                    
+                # Get relative path for consistent hashing
+                rel_path = file_path.relative_to(spell_dir)
+                hasher.update(str(rel_path).encode())
+                
+                # Add file contents
+                with open(file_path, 'rb') as f:
+                    while chunk := f.read(8192):
+                        hasher.update(chunk)
 
-            # Hash contents of each file
-            for file_path in files_to_hash:
-                try:
-                    with open(file_path, 'rb') as f:
-                        hasher.update(f.read())
-                except Exception as e:
-                    # Log or handle file reading errors
-                    print(f"Warning: Could not hash file {file_path}: {e}")
-
-        # Return the final hash
         return hasher.hexdigest()
 
     @staticmethod
@@ -320,22 +327,15 @@ class Sigildry:
                 
                 # Extract spell contents
                 with zipfile.ZipFile(spell_path, 'r') as zip_ref:
-                    zip_ref.extractall(temp_dir_path)
-                
-                # Load metadata from spell.json (primary source)
-                metadata = {}
-                json_path = temp_dir_path / 'spell.json'
-                if json_path.exists():
-                    with open(json_path, 'r') as f:
+                    # Extract all files except spell.json and sigil
+                    for file_info in zip_ref.filelist:
+                        if file_info.filename not in ['spell.json', f"{Path(spell_path).stem}_sigil.svg"]:
+                            zip_ref.extract(file_info, temp_dir_path)
+                    
+                    # Load metadata from spell.json (primary source)
+                    metadata = {}
+                    with zip_ref.open('spell.json') as f:
                         metadata = json.load(f)
-                
-                # If no spell.json, try spell.yaml
-                if not metadata:
-                    yaml_paths = list(temp_dir_path.rglob('spell.yaml'))
-                    if yaml_paths:
-                        yaml_path = yaml_paths[0]
-                        with open(yaml_path, 'r') as f:
-                            metadata = yaml.safe_load(f)
                 
                 # If no metadata found at all
                 if not metadata:

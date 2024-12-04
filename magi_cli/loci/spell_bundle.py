@@ -116,12 +116,6 @@ class SpellBundle:
         # Generate sigil
         sigil_hash, sigil_path = self._generate_spell_sigil(config)
         
-        # Update spell.yaml with the hash
-        config['sigil_hash'] = sigil_hash
-        yaml_path = self.spell_dir / 'spell' / 'spell.yaml'
-        with open(yaml_path, 'w') as f:
-            yaml.safe_dump(config, f, default_flow_style=False)
-        
         # Create bundle path
         bundle_name = f"{config['name']}.spell"
         bundle_path = destination_dir / bundle_name
@@ -229,7 +223,30 @@ class SpellBundle:
         bundle_path = self.tome_dir / f"{spell_name}.spell"
         
         with zipfile.ZipFile(bundle_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-            # Add metadata
+            # Add all files from spell directory first
+            print("- Adding files to bundle:")
+            for file_path in nested_dir.rglob('*'):
+                if file_path.is_file():
+                    try:
+                        arcname = file_path.relative_to(nested_dir)
+                        print(f"  Adding: {arcname}")
+                        # Read file content and add to zip to avoid file locking
+                        content = file_path.read_bytes()
+                        zf.writestr(f"spell/{arcname}", content)
+                    except Exception as e:
+                        print(f"Warning: Could not add file {file_path}: {e}")
+            
+            # Generate sigil ONCE and add to bundle
+            sigil_path = nested_dir / f"{spell_name}_sigil.svg"
+            print(f"- Generating sigil at: {sigil_path}")
+            Sigildry.generate_sigil_from_spell(nested_dir, sigil_hash, sigil_path)
+            
+            # Add sigil to bundle
+            sigil_name = f"{spell_name}_sigil.svg"
+            with open(sigil_path, 'rb') as sigil_file:
+                zf.writestr(sigil_name, sigil_file.read())
+            
+            # Store the hash in metadata and add metadata last
             metadata = {
                 "name": config['name'],
                 "description": config.get('description', ''),
@@ -241,19 +258,7 @@ class SpellBundle:
                 "sigil_hash": sigil_hash,
                 "dependencies": config.get('dependencies', {'python': []})
             }
-            
             zf.writestr('spell.json', json.dumps(metadata, indent=2))
-            
-            # Add sigil
-            sigil_name = f"{config['name']}_sigil.svg"
-            with open(sigil_path, 'rb') as sigil_file:
-                zf.writestr(sigil_name, sigil_file.read())
-            
-            # Add files from nested directory
-            for file_path in nested_dir.rglob('*'):
-                if file_path.is_file():
-                    arcname = file_path.relative_to(nested_dir)
-                    zf.write(file_path, arcname)
         
         return bundle_path
 
@@ -266,81 +271,75 @@ class SpellBundle:
                           description: str, 
                           spell_dir: Path,
                           verify_structure: bool = True) -> Path:
-        # Normalize spell_type and shell_type to strings
-        spell_type = spell_type.value if isinstance(spell_type, SpellType) else spell_type
-        shell_type = shell_type.value if isinstance(shell_type, ShellType) else shell_type
-
-        # Verify spell directory structure if requested
-        if verify_structure:
-            cls._verify_spell_directory(spell_dir)
-
-        # Create temporary directory for bundle
-        with tempfile.TemporaryDirectory() as temp_dir:
-            nested_dir = Path(temp_dir)
+        # Normalize types
+        if isinstance(spell_type, str):
+            spell_type = getattr(SpellType, spell_type.upper(), SpellType.SCRIPT)
+        if isinstance(shell_type, str):
+            shell_type = getattr(ShellType, shell_type.upper(), ShellType.PYTHON)
             
-            # Generate metadata
-            metadata = {
-                'name': spell_name,
-                'type': spell_type,
-                'shell_type': shell_type,
-                'entry_point': entry_point,
-                'description': description,
-                'version': '1.0.0'  # Consider making this configurable
-            }
+        # Create metadata
+        metadata = {
+            "name": spell_name,
+            "description": description,
+            "created_at": datetime.now().isoformat(),
+            "entry_point": entry_point,
+            "shell_type": shell_type,
+            "type": spell_type,
+            "version": "1.0.0",
+            "dependencies": {'python': []}
+        }
+        
+        # Create bundle path
+        bundle_path = Path(SANCTUM_PATH) / '.tome' / f'{spell_name}.spell'
 
-            # Generate sigil hash ONCE using Sigildry
-            sigil_hash = Sigildry.generate_sigil_hash(
-                spell_name=spell_name,
-                description=description,
-                spell_type=spell_type,
-                version=metadata.get('version', '1.0.0'),
-                entry_point=entry_point,
-                shell_type=shell_type,
-                spell_dir=spell_dir
-            )
-            
-            # Store the hash in metadata
-            metadata['sigil_hash'] = sigil_hash
+        try:
+            # Create zip bundle
+            with zipfile.ZipFile(bundle_path, 'w', zipfile.ZIP_DEFLATED) as zf:
+                # Add all files from spell directory first
+                print("- Adding files to bundle:")
+                for file_path in spell_dir.rglob('*'):
+                    if file_path.is_file():
+                        try:
+                            arcname = file_path.relative_to(spell_dir)
+                            print(f"  Adding: {arcname}")
+                            # Read file content and add to zip to avoid file locking
+                            content = file_path.read_bytes()
+                            # Add to spell/ directory in the bundle
+                            zf.writestr(f"spell/{arcname}", content)
+                        except Exception as e:
+                            print(f"Warning: Could not add file {file_path}: {e}")
+                
+                # Generate sigil ONCE and add to bundle
+                sigil_path = spell_dir / f"{spell_name}_sigil.svg"
+                print(f"- Generating sigil at: {sigil_path}")
+                sigil_hash = Sigildry.generate_sigil_hash(
+                    spell_name=spell_name,
+                    description=description,
+                    spell_type=spell_type,
+                    version="1.0.0",
+                    entry_point=entry_point,
+                    shell_type=shell_type,
+                    spell_dir=spell_dir
+                )
+                Sigildry.generate_sigil_from_spell(spell_dir, sigil_hash, sigil_path)
+                
+                # Add sigil to bundle
+                sigil_name = f"{spell_name}_sigil.svg"
+                with open(sigil_path, 'rb') as sigil_file:
+                    # Add sigil at root level
+                    zf.writestr(sigil_name, sigil_file.read())
+                
+                # Store the hash in metadata and add metadata last
+                metadata['sigil_hash'] = sigil_hash
+                zf.writestr('spell.json', json.dumps(metadata, indent=2))
 
-            # Create bundle path
-            bundle_path = Path(SANCTUM_PATH) / '.tome' / f'{spell_name}.spell'
+        except Exception as e:
+            if bundle_path.exists():
+                bundle_path.unlink()  # Clean up failed bundle
+            raise
 
-            try:
-                # Create zip bundle
-                with zipfile.ZipFile(bundle_path, 'w', zipfile.ZIP_DEFLATED) as zf:
-                    # Add metadata to bundle
-                    zf.writestr('spell.json', json.dumps(metadata, indent=2))
-                    
-                    # Generate sigil ONCE and add to bundle
-                    sigil_path = nested_dir / f"{spell_name}_sigil.svg"
-                    print(f"- Generating sigil at: {sigil_path}")
-                    Sigildry.generate_sigil_from_spell(spell_dir, sigil_hash, sigil_path)
-                    
-                    # Add sigil to bundle
-                    sigil_name = f"{spell_name}_sigil.svg"
-                    with open(sigil_path, 'rb') as sigil_file:
-                        zf.writestr(sigil_name, sigil_file.read())
-                    
-                    # Add all files from spell directory
-                    print("- Adding files to bundle:")
-                    for file_path in spell_dir.rglob('*'):
-                        if file_path.is_file():
-                            try:
-                                arcname = file_path.relative_to(spell_dir)
-                                print(f"  Adding: {arcname}")
-                                # Read file content and add to zip to avoid file locking
-                                content = file_path.read_bytes()
-                                zf.writestr(str(arcname), content)
-                            except Exception as e:
-                                print(f"Warning: Could not add file {file_path}: {e}")
-
-            except Exception as e:
-                if bundle_path.exists():
-                    bundle_path.unlink()  # Clean up failed bundle
-                raise
-
-            print(f"Bundle created at: {bundle_path}")
-            return bundle_path
+        print(f"Bundle created at: {bundle_path}")
+        return bundle_path
 
     @classmethod
     def _verify_spell_directory(cls, spell_dir: Path):

@@ -109,6 +109,49 @@ or cast with its alias:
 cast fb test.py
 ```
 
+## Workflow of SpellCasting
+
+```mermaid
+stateDiagram-v2
+    state "cast" as entry
+    
+    state "Command Handling" as commands {
+        SpellParser
+        CommandRegistry
+    }
+
+    state "Executable Types" as types {
+        state ".py files" as py
+        state ".sh files" as sh
+        state ".spell bundles" as bundle
+    }
+
+    state "Spellcraft System" as craft {
+        state "SpellBundle" as sb {
+            LoadConfig
+            CreateBundle
+        }
+        
+        state "Sigildry" as sig {
+            GenerateHash
+            GenerateSVG
+            VerifySigil
+        }
+    }
+
+    state "~/.sanctum" as sanctum {
+        .tome
+        .orb
+        .graveyard
+    }
+
+    entry --> commands
+    commands --> types
+    bundle --> craft
+    craft --> sanctum
+    types --> sanctum
+```
+
 ### Future Enchantments
 
 Additional spells, file type support, and arcane features can be added to the CLI based on the desires and whims of its practitioners. Beware that some spells (Astral_Realm, Unseen_Servant) are not fully defined yet, and their arcane secrets may change.
@@ -142,3 +185,4 @@ Additional spells, file type support, and arcane features can be added to the CL
 ### Contributing
 
 If you would like to contribute to the project, please read the [CONTRIBUTING.md](CONTRIBUTING.md) file for more information.
+

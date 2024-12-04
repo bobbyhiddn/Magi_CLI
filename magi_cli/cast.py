@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 
 import click # type: ignore
-import subprocess
-import sys
 import os
+import sys
 import glob
 from magi_cli.spells import commands_list, aliases, SANCTUM_PATH
 from magi_cli.loci.spell_parse import SpellParser  # Import SpellParser
@@ -20,11 +19,14 @@ for command in commands_list:
 # Non-click functions
 
 def execute_bash_file(filename):
-    subprocess.run(["bash", filename], check=True)
+    # Just pass through to the terminal's bash
+    os.system(f"bash {filename}")
 
 # Updated execute_python_file function to accept args
 def execute_python_file(filename, args):
-    subprocess.run([sys.executable, filename, *args], check=True)
+    # Just pass through to the terminal's python
+    args_str = ' '.join(args) if args else ''
+    os.system(f"{sys.executable} {filename} {args_str}")
 
 # Click functions
 
@@ -84,7 +86,7 @@ def cast(input, verbose, **kwargs):
                     success = SpellParser.execute_spell_file(spell_name, *args, verbose=verbose)
                     if not success:
                         print(f"Error: Failed to execute spell '{spell_name}'.")
-            except subprocess.CalledProcessError as e:
+            except Exception as e:
                 print(f"Error executing script: {e}")
                 sys.exit(1)
         else:
