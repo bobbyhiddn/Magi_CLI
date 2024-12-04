@@ -302,7 +302,7 @@ class SpellRecipe:
             'shell_type': 'bash',
             'version': '1.0.0',
             'commands': commands,  # Store commands in metadata
-            'entry_point': 'macro_script.sh'
+            'entry_point': f'spell/{self.spell_name}.sh'
         }
 
 
@@ -316,7 +316,7 @@ class SpellRecipe:
         artifacts_dir.mkdir(parents=True, exist_ok=True)
 
         # Create macro script
-        macro_script_path = spell_subdir / 'macro.sh'
+        macro_script_path = spell_subdir / f'{self.spell_name}.sh'
         with open(macro_script_path, 'w') as f:
             f.write('#!/bin/bash\n')
             for cmd in commands:

@@ -68,14 +68,30 @@ def cast(input, verbose, **kwargs):
                 ctx.invoke(command, alias=kwargs['alias'])
             else:
                 ctx.invoke(command)
-
     else:
-        # Use SpellParser to execute the spell file
         spell_name = input[0]
         args = input[1:] if len(input) > 1 else []
-        success = SpellParser.execute_spell_file(spell_name, *args, verbose=verbose)
-        if not success:
-            print(f"Error: Failed to execute spell '{spell_name}'.")
+        
+        # Check if it's a direct script file
+        if os.path.isfile(spell_name):
+            try:
+                if spell_name.endswith('.py'):
+                    execute_python_file(spell_name, args)
+                elif spell_name.endswith('.sh'):
+                    execute_bash_file(spell_name)
+                else:
+                    # Try to execute as a spell
+                    success = SpellParser.execute_spell_file(spell_name, *args, verbose=verbose)
+                    if not success:
+                        print(f"Error: Failed to execute spell '{spell_name}'.")
+            except subprocess.CalledProcessError as e:
+                print(f"Error executing script: {e}")
+                sys.exit(1)
+        else:
+            # Try to execute as a spell
+            success = SpellParser.execute_spell_file(spell_name, *args, verbose=verbose)
+            if not success:
+                print(f"Error: Failed to execute spell '{spell_name}'.")
 
 def main():
     cast()

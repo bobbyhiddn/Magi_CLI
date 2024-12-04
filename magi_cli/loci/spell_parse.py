@@ -318,7 +318,37 @@ class SpellParser:
                 click.echo(f"Type: {metadata.get('type', 'Unknown')}")
                 click.echo(f"Shell Type: {metadata.get('shell_type', 'Unknown')}")
             
-            # Locate the entry point script
+            # Special handling for macro spells
+            if metadata.get('type') == 'macro':
+                # For macro spells, create and execute a temporary shell script
+                macro_script = temp_dir / 'macro_script.sh'
+                with open(macro_script, 'w') as f:
+                    f.write('#!/bin/bash\n')
+                    for cmd in metadata.get('commands', []):
+                        f.write(f"{cmd}\n")
+                
+                # Make script executable
+                macro_script.chmod(0o755)
+                
+                # Execute the macro script
+                try:
+                    result = subprocess.run(['bash', str(macro_script)], capture_output=True, text=True)
+                    if result.stdout:
+                        click.echo(result.stdout)
+                    if result.stderr:
+                        click.echo(result.stderr, err=True)
+                    if result.returncode != 0:
+                        click.echo(f"Macro spell execution failed with code {result.returncode}")
+                        return False
+                    return True
+                except subprocess.CalledProcessError as e:
+                    click.echo(f"Error executing macro spell: {e}")
+                    return False
+                except FileNotFoundError:
+                    click.echo("Bash shell not found")
+                    return False
+            
+            # For other spell types, locate the entry point script
             entry_point_name = metadata.get('entry_point')
             if not entry_point_name:
                 click.echo("Error: No entry point found in spell metadata.")
@@ -496,20 +526,11 @@ class SpellParser:
             bool: True if execution was successful, False otherwise
         """
         try:
-            # Determine appropriate shell
-            if sys.platform == 'win32':
-                # Use Git Bash or WSL
-                if shutil.which('bash'):
-                    cmd = ['bash', script_path]
-                elif shutil.which('wsl'):
-                    cmd = ['wsl', 'bash', script_path]
-                else:
-                    if verbose:
-                        click.echo(click.style("No bash shell found", fg='bright_red', bold=True))
-                    return False
-            else:
-                # Unix-like systems
-                cmd = ['bash', script_path]
+            # Make script executable
+            Path(script_path).chmod(0o755)
+            
+            # Prepare command
+            cmd = ['bash', str(script_path)]
             
             if verbose:
                 # Detailed command execution logging
@@ -526,9 +547,10 @@ class SpellParser:
                 click.echo(result.stdout)
             
             # Check for errors
-            if result.returncode != 0 and verbose:
-                click.echo(click.style("\nScript Execution Error:", fg='bright_red', bold=True))
-                click.echo(result.stderr)
+            if result.returncode != 0:
+                if verbose and result.stderr:
+                    click.echo(click.style("\nScript Execution Error:", fg='bright_red', bold=True))
+                    click.echo(result.stderr)
                 return False
             
             return True
