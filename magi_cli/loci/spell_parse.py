@@ -297,29 +297,6 @@ class SpellParser:
                 click.echo(f"Type: {metadata.get('type', 'Unknown')}")
                 click.echo(f"Shell Type: {metadata.get('shell_type', 'Unknown')}")
             
-            # # Special handling for macro spells
-            # if metadata.get('type') == 'macro':
-            #     # For macro spells, create and execute a temporary shell script
-            #     macro_script = temp_dir / 'macro_script.sh'
-            #     with open(macro_script, 'w') as f:
-            #         f.write('#!/bin/bash\n')
-            #         for cmd in metadata.get('commands', []):
-            #             f.write(f"{cmd}\n")
-                
-            #     # Make script executable
-            #     macro_script.chmod(0o755)
-                
-
-            #     # Verify spell sigil using Sigildry
-            #     sigil_verification = Sigildry.verify_sigil(spell_path)
-
-            #     # Execute the macro script using system shell
-            #     exit_code = os.system(f"bash {macro_script}")
-            #     if exit_code != 0:
-            #         click.echo(f"Macro spell execution failed with code {exit_code}")
-            #         return False
-            #     return True
-            
             # For other spell types, locate the entry point script
             entry_point_name = metadata.get('entry_point')
             if not entry_point_name:
