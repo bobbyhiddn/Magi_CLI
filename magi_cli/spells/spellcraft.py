@@ -409,10 +409,35 @@ def spellcraft(args, verbose):
         spell_name = args[1] if len(args) > 1 else None
 
         if input_path.suffix == '.yaml':
-            # Use SpellBuilder for YAML-based spell creation
             try:
+                # Load the YAML config
+                with open(input_path) as f:
+                    yaml_config = yaml.safe_load(f)
+                
+                # Use the name from YAML or fallback to filename
+                spell_name = spell_name or yaml_config.get('name') or input_path.stem
+                description = yaml_config.get('description')
+                
+                if not description:
+                    description = click.prompt("Enter spell description")
+
+                # Create as bundled spell
+                recipe = SpellRecipe(spell_name, "bundled")
+                
+                # Create temporary spell directory structure
+                temp_spell_dir = Path(tempfile.mkdtemp()) / f"{spell_name}.spell"
+                temp_spell_dir.mkdir(parents=True)
+                
+                # Let SpellBuilder handle the content creation
                 builder = SpellBuilder(input_path)
-                bundle_path = builder.build()
+                builder.create_spell_structure(temp_spell_dir)
+                
+                # Use same bundling process as other spell types
+                bundle_path = recipe.create_bundled_spell(temp_spell_dir, description)
+                
+                # Clean up temp directory
+                shutil.rmtree(temp_spell_dir.parent)
+                
                 click.echo(get_success_message(f"Spell crafted successfully: {bundle_path}"))
                 return
             except Exception as e:

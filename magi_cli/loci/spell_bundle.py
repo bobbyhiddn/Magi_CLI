@@ -116,6 +116,12 @@ class SpellBundle:
         # Generate sigil
         sigil_hash, sigil_path = self._generate_spell_sigil(config)
         
+        # Update spell.yaml with the hash
+        config['sigil_hash'] = sigil_hash
+        yaml_path = self.spell_dir / 'spell' / 'spell.yaml'
+        with open(yaml_path, 'w') as f:
+            yaml.safe_dump(config, f, default_flow_style=False)
+        
         # Create bundle path
         bundle_name = f"{config['name']}.spell"
         bundle_path = destination_dir / bundle_name
@@ -232,7 +238,7 @@ class SpellBundle:
                         print(f"  Adding: {arcname}")
                         # Read file content and add to zip to avoid file locking
                         content = file_path.read_bytes()
-                        zf.writestr(f"spell/{arcname}", content)
+                        zf.writestr(str(arcname), content)
                     except Exception as e:
                         print(f"Warning: Could not add file {file_path}: {e}")
             
@@ -304,8 +310,7 @@ class SpellBundle:
                             print(f"  Adding: {arcname}")
                             # Read file content and add to zip to avoid file locking
                             content = file_path.read_bytes()
-                            # Add to spell/ directory in the bundle
-                            zf.writestr(f"spell/{arcname}", content)
+                            zf.writestr(str(arcname), content)
                         except Exception as e:
                             print(f"Warning: Could not add file {file_path}: {e}")
                 
@@ -326,12 +331,20 @@ class SpellBundle:
                 # Add sigil to bundle
                 sigil_name = f"{spell_name}_sigil.svg"
                 with open(sigil_path, 'rb') as sigil_file:
-                    # Add sigil at root level
                     zf.writestr(sigil_name, sigil_file.read())
                 
                 # Store the hash in metadata and add metadata last
                 metadata['sigil_hash'] = sigil_hash
                 zf.writestr('spell.json', json.dumps(metadata, indent=2))
+
+                # Update spell.yaml with the hash
+                yaml_path = spell_dir / 'spell' / 'spell.yaml'
+                if yaml_path.exists():
+                    with open(yaml_path) as f:
+                        yaml_config = yaml.safe_load(f)
+                    yaml_config['sigil_hash'] = sigil_hash
+                    with open(yaml_path, 'w') as f:
+                        yaml.safe_dump(yaml_config, f, default_flow_style=False)
 
         except Exception as e:
             if bundle_path.exists():
