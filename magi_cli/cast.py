@@ -41,14 +41,13 @@ def cast(input, verbose, **kwargs):
 
     if not input:
         # Display available commands and spells if no input is provided
-        print("Available commands:")
+        click.echo(click.style("🎭 Available Commands:", fg="bright_blue", bold=True))
         for name, command in cli.commands.items():
-            print(f"- {name}: {command.help}")
+            click.echo(click.style(f"  ⚡ {name}:", fg="cyan") + f" {command.help}")
 
-        print("\nAvailable spells recorded in your tome:")
+        click.echo("\n" + click.style("📚 Available spells recorded in your tome:", fg="bright_blue", bold=True))
         for file in glob.glob(f"{tome_path}/*.spell"):
-            print(f"- {os.path.basename(file)}")
-
+            click.echo(click.style(f"  🔮 {os.path.basename(file)}", fg="magenta"))
     elif input[0] in aliases:
         command = aliases[input[0]]
         ctx = click.get_current_context()

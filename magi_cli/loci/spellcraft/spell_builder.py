@@ -5,6 +5,7 @@ import shutil
 import tempfile
 import requests
 import subprocess
+import click
 from pathlib import Path
 from typing import Dict, Any, Optional
 from magi_cli.loci.spellcraft.spell_bundle import SpellBundle
@@ -29,7 +30,8 @@ class SpellBuilder:
        if 'code' in config:
            entry_point = config.get('entry_point', 'main.py')
            script_path = spell_subdir / entry_point
-           print(f"  Adding: spell\\{entry_point}")
+           click.echo(click.style("  » Adding:", fg="bright_blue") + 
+                     click.style(f" spell\\{entry_point}", fg="cyan"))
            script_path.write_text(config['code'])
            if config.get('shell_type') != 'python':
                script_path.chmod(0o755)
@@ -52,14 +54,16 @@ class SpellBuilder:
        }
 
        yaml_path = spell_subdir / 'spell.yaml'
-       print(f"  Adding: spell\\spell.yaml")
+       click.echo(click.style("  » Adding:", fg="bright_blue") + 
+                 click.style(" spell\\spell.yaml", fg="cyan"))
        with open(yaml_path, 'w') as f:
            yaml.safe_dump(spell_yaml, f, default_flow_style=False)
 
        if 'artifacts' in config:
            for artifact in config['artifacts']:
                self._fetch_artifact(artifact, spell_dir)
-               print(f"  Adding: artifacts\\{artifact['path']}")
+               click.echo(click.style("  » Adding:", fg="bright_blue") + 
+                         click.style(f" artifacts\\{artifact['path']}", fg="cyan"))
 
    def _fetch_artifact(self, artifact_config: Dict[str, Any], base_path: Path) -> None:
        path = base_path / 'artifacts' / artifact_config['path']

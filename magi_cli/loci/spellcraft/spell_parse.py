@@ -86,26 +86,27 @@ class SpellParser:
         # Check required fields
         missing = [field for field in SpellParser.REQUIRED_FIELDS if field not in metadata]
         if missing:
-            raise ValueError(f"Missing required metadata fields: {', '.join(missing)}")
+            error_msg = click.style("Missing required metadata fields: ", fg="bright_red") + \
+                       click.style(", ".join(missing), fg="red", bold=True)
+            raise ValueError(error_msg)
             
         # Add type validation that supports all spell types    
         if metadata.get('type') not in SpellParser.ALLOWED_TYPES:
-            raise ValueError(f"Invalid spell type: {metadata.get('type')}")
+            error_msg = click.style("Invalid spell type: ", fg="bright_red") + \
+                       click.style(metadata.get('type'), fg="red", bold=True)
+            raise ValueError(error_msg)
             
         if metadata.get('shell_type') not in SpellParser.ALLOWED_SHELLS:
-            raise ValueError(f"Invalid shell type: {metadata.get('shell_type')}")
+            error_msg = click.style("Invalid shell type: ", fg="bright_red") + \
+                       click.style(metadata.get('shell_type'), fg="red", bold=True)
+            raise ValueError(error_msg)
             
         # Check entry point extension
         entry_point = Path(metadata['entry_point'])
         if entry_point.suffix not in SpellParser.ALLOWED_EXTENSIONS:
-            raise ValueError(f"Invalid entry point file type: {metadata['entry_point']}")
-            
-        # Validate dependencies format if present
-        if 'dependencies' in metadata:
-            if not isinstance(metadata['dependencies'], dict):
-                raise ValueError("Dependencies must be a dictionary")
-            if 'python' in metadata['dependencies'] and not isinstance(metadata['dependencies']['python'], list):
-                raise ValueError("Python dependencies must be a list")
+            error_msg = click.style("Invalid entry point file type: ", fg="bright_red") + \
+                       click.style(metadata['entry_point'], fg="red", bold=True)
+            raise ValueError(error_msg)
 
     @staticmethod
     def _convert_yaml_to_metadata(config: Dict[str, Any]) -> Dict[str, Any]:
@@ -261,7 +262,8 @@ class SpellParser:
             spell_path = tome_path / f"{spell_name}.spell"
             
             if not spell_path.exists():
-                click.echo(f"Error: Spell '{spell_name}' not found in tome.")
+                click.echo(click.style("Error: ", fg="bright_red") + 
+                         click.style(f"Spell '{spell_name}' not found", fg="red"))
                 return False
             
             # Verify spell sigil using Sigildry
@@ -287,20 +289,23 @@ class SpellParser:
                             for f in files:
                                 click.echo(f"  - {rel_path}/{f}")
             except Exception as e:
-                click.echo(f"Error parsing spell bundle: {e}")
+                click.echo(click.style("Error parsing spell bundle: ", fg="bright_red") + 
+                         click.style(str(e), fg="red"))
                 return False
             
             # Level 1 verbosity (basic info)
             if verbose >= 1:
-                click.echo(f"Executing Spell: {metadata.get('name', spell_name)}")
-                click.echo(f"Description: {metadata.get('description', 'No description')}")
-                click.echo(f"Type: {metadata.get('type', 'Unknown')}")
-                click.echo(f"Shell Type: {metadata.get('shell_type', 'Unknown')}")
-            
+                click.echo(click.style("\nSpell Details:", fg="bright_blue", bold=True))
+                click.echo(click.style("  » Name: ", fg="cyan") + f"{metadata['name']}")
+                click.echo(click.style("  » Type: ", fg="cyan") + f"{metadata['type']}")
+                click.echo(click.style("  » Description: ", fg="cyan") + f"{metadata['description']}")
+                click.echo(click.style("  » Version: ", fg="cyan") + f"{metadata['version']}\n")
+
             # For other spell types, locate the entry point script
             entry_point_name = metadata.get('entry_point')
             if not entry_point_name:
-                click.echo("Error: No entry point found in spell metadata.")
+                click.echo(click.style("Error: ", fg="bright_red") + 
+                         click.style("No entry point found in spell metadata", fg="red"))
                 return False
             
             # Find the actual entry point file
@@ -321,7 +326,8 @@ class SpellParser:
             entry_point = next((path for path in entry_point_candidates if path.exists()), None)
             
             if not entry_point:
-                click.echo(f"Error: Entry point {entry_point_name} not found.")
+                click.echo(click.style("Error: ", fg="bright_red") + 
+                         click.style(f"Entry point {entry_point_name} not found", fg="red"))
                 return False
             
             # Make the script executable if it's a shell script
@@ -348,7 +354,8 @@ class SpellParser:
                     
                     # Check return code
                     if result.returncode != 0:
-                        click.echo(f"Python spell execution failed with code {result.returncode}")
+                        click.echo(click.style("Python spell execution failed with code ", fg="bright_red") + 
+                                 click.style(str(result.returncode), fg="red"))
                         return False
                 
                 elif shell_type in ['bash', 'shell']:
@@ -356,20 +363,23 @@ class SpellParser:
                     exit_code = os.system(f"bash {entry_point}")
                     
                     if exit_code != 0:
-                        click.echo(f"Shell spell execution failed with code {exit_code}")
+                        click.echo(click.style("Shell spell execution failed with code ", fg="bright_red") + 
+                                 click.style(str(exit_code), fg="red"))
                         return False
                 
                 else:
-                    click.echo(f"Unsupported shell type: {shell_type}")
+                    click.echo(click.style("Unsupported shell type: ", fg="bright_red") + 
+                             click.style(shell_type, fg="red"))
                     return False
             
             except Exception as e:
-                click.echo(f"Execution error: {e}")
+                click.echo(click.style("Execution error: ", fg="bright_red") + 
+                         click.style(str(e), fg="red"))
                 return False
             
             # Level 2 verbosity (detailed metadata)
             if verbose >= 2:
-                click.echo("\nDetailed Spell Metadata:")
+                click.echo(click.style("\nDetailed Spell Metadata:", fg="bright_blue", bold=True))
                 for key, value in metadata.items():
                     # Skip empty or None values
                     if value is None or (isinstance(value, (str, list, dict)) and len(value) == 0):
@@ -381,25 +391,32 @@ class SpellParser:
                     
                     # Special handling for nested dictionaries
                     if isinstance(value, dict):
-                        click.echo(f"  {click.style(key.upper(), fg='bright_cyan', bold=True)}:")
+                        click.echo(click.style("  " + key.upper() + ": ", fg="cyan", bold=True))
                         for sub_key, sub_value in value.items():
                             # Skip empty or None sub-values
                             if sub_value is not None and not (isinstance(sub_value, (str, list, dict)) and len(sub_value) == 0):
-                                click.echo(f"    {click.style(sub_key + ':', fg='bright_white')} {sub_value}")
+                                click.echo(click.style("    " + sub_key + ": ", fg="bright_white") + str(sub_value))
                     else:
-                        click.echo(f"  {click.style(key.upper() + ':', fg='bright_cyan')} {value}")
+                        click.echo(click.style("  " + key.upper() + ": ", fg="cyan") + str(value))
                 
                 # Add sigil verification details
-                click.echo("\n  SIGIL VERIFICATION:")
+                click.echo(click.style("\n  SIGIL VERIFICATION:", fg="bright_blue"))
                 verification_details = sigil_verification
                 for sub_key, sub_value in verification_details.items():
                     if sub_key != 'metadata':  # Skip nested metadata
-                        click.echo(f"    {click.style(sub_key.upper() + ':', fg='bright_white')} {sub_value}")
+                        click.echo(click.style("    " + sub_key.upper() + ": ", fg="bright_white") + str(sub_value))
             
+            if verbose:
+                click.echo(click.style("✨ Spell executed successfully", fg="bright_green"))
             return True
         
         except Exception as e:
-            click.echo(f"Unexpected error executing spell: {e}")
+            click.echo(click.style("Unexpected error executing spell: ", fg="bright_red") + 
+                     click.style(str(e), fg="red"))
+            if verbose:
+                import traceback
+                click.echo(click.style("\nDetailed Error:", fg="bright_red"))
+                click.echo(click.style(traceback.format_exc(), fg="red"))
             return False
         finally:
             # Clean up temporary directory
@@ -426,21 +443,21 @@ class SpellParser:
             
             if verbose:
                 # Detailed command execution logging
-                click.echo(click.style("Python Script Execution:", fg='bright_cyan', bold=True))
-                click.echo(f"  {click.style('Script Path:', fg='bright_white')} {script_path}")
-                click.echo(f"  {click.style('Command:', fg='bright_white')} {' '.join(cmd)}")
+                click.echo(click.style("Python Script Execution:", fg="bright_blue", bold=True))
+                click.echo(click.style("  Script Path: ", fg="cyan") + f"{script_path}")
+                click.echo(click.style("  Command: ", fg="cyan") + f"{' '.join(cmd)}")
             
             # Run the script
             result = subprocess.run(cmd, capture_output=verbose, text=verbose)
             
             # If verbose, show output
             if verbose and result.stdout:
-                click.echo(click.style("\nScript Output:", fg='bright_cyan', bold=True))
+                click.echo(click.style("\nScript Output:", fg="bright_blue", bold=True))
                 click.echo(result.stdout)
             
             # Check for errors
             if result.returncode != 0 and verbose:
-                click.echo(click.style("\nScript Execution Error:", fg='bright_red', bold=True))
+                click.echo(click.style("\nScript Execution Error:", fg="bright_red", bold=True))
                 click.echo(result.stderr)
                 return False
             
@@ -448,7 +465,7 @@ class SpellParser:
         
         except subprocess.CalledProcessError:
             if verbose:
-                click.echo(click.style("Script Execution Failed", fg='bright_red', bold=True))
+                click.echo(click.style("Script Execution Failed", fg="bright_red", bold=True))
             return False
 
     @staticmethod
@@ -468,22 +485,22 @@ class SpellParser:
             Path(script_path).chmod(0o755)
             
             if verbose:
-                click.echo(click.style("Bash Script Execution:", fg='bright_cyan', bold=True))
-                click.echo(f"  {click.style('Script Path:', fg='bright_white')} {script_path}")
+                click.echo(click.style("Bash Script Execution:", fg="bright_blue", bold=True))
+                click.echo(click.style("  Script Path: ", fg="cyan") + f"{script_path}")
             
             # Execute using system shell
             exit_code = os.system(f"bash {script_path}")
             
             if exit_code != 0:
                 if verbose:
-                    click.echo(click.style("\nScript Execution Error:", fg='bright_red', bold=True))
-                    click.echo(f"Exit code: {exit_code}")
+                    click.echo(click.style("\nScript Execution Error:", fg="bright_red", bold=True))
+                    click.echo(click.style(f"Exit code: {exit_code}", fg="red"))
                 return False
             
             return True
             
         except Exception as e:
             if verbose:
-                click.echo(click.style("Failed to execute script", fg='bright_red', bold=True))
-                click.echo(str(e))
+                click.echo(click.style("Failed to execute script", fg="bright_red", bold=True))
+                click.echo(click.style(str(e), fg="red"))
             return False

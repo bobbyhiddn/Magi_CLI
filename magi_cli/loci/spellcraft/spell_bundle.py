@@ -12,6 +12,7 @@ from typing import Optional, Dict, Any, Tuple, List, Union, Literal
 import hashlib
 from enum import Enum
 import os
+import click
 from magi_cli.spells import SANCTUM_PATH
 from magi_cli.loci.spellcraft.sigildry import Sigildry
 
@@ -85,7 +86,8 @@ class SpellBundle:
         sigil_path = self.spell_dir / f"{config['name']}_sigil.svg"
         
         # Generate sigil
-        print(f"- Generating sigil at: {sigil_path}")
+        click.echo(click.style("» Manifesting sigil at:", fg="bright_blue") + 
+                  click.style(f" {sigil_path}", fg="cyan"))
         Sigildry.generate_sigil_from_spell(self.spell_dir, sigil_hash, sigil_path)
         
         return sigil_hash, sigil_path

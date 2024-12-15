@@ -363,42 +363,67 @@ class SpellRecipe:
             shutil.rmtree(self.temp_dir)
 
 def get_success_message(message: str) -> str:
-    """Get a success message with appropriate emoji based on environment."""
-    try:
-        "✨".encode(sys.stdout.encoding)
-        return f"✨ {message}"
-    except UnicodeEncodeError:
-        return f"* {message}"
+    """Get a success message with appropriate emoji and color."""
+    return click.style(f"✨ {message}", fg="bright_green", bold=True)
+
+def get_mystical_prompt(message: str, prompt_type: str = "input") -> str:
+    """Get a mystically styled prompt message."""
+    symbols = {
+        "description": "»",
+        "command": "»",
+        "info": "»",
+        "warning": "!",
+        "success": "✨"
+    }
+    symbol = symbols.get(prompt_type, "»")
+    return click.style(f"{symbol} {message}", fg="bright_magenta", bold=True)
 
 @click.command()
 @click.argument('args', nargs=-1)
 @click.option('-v', '--verbose', is_flag=True, help='Enable verbose output')
 def spellcraft(args, verbose):
-    """Craft different types of spells based on input."""
+    """Craft different types of spells based on input.
+    
+    Create spells from commands, scripts, or configuration files:
+    
+    \b
+    Macro Spells:   Combine multiple shell commands into a single spell
+    Script Spells:  Convert Python or Bash scripts into spells
+    Config Spells:  Create spells from YAML configuration files
+    """
     try:
         if not args:
-            click.echo("Usage:\n"
-                      "  cast sc <number_of_commands> <spell_name>  # For macro spells\n"
-                      "  cast sc <path> [spell_name(optional)]      # For python/bash scripts or spell directories\n"
-                      "  cast sc <config.yaml>                      # For YAML configurations")
+            click.echo(click.style("Available Spell Types:", fg="bright_blue", bold=True))
+            click.echo(click.style("  Macro Spell:", fg="cyan") + " cast sc <number_of_commands> <spell_name>")
+            click.echo(click.style("  Script Spell:", fg="cyan") + " cast sc <path> [spell_name]")
+            click.echo(click.style("  Config Spell:", fg="cyan") + " cast sc <config.yaml>")
             return
 
-        # TODO: Create a way to retrieve the last X commands and create a macro spell
-        # Handle macro spell creation
         try:
             num_commands = int(args[0])
             if len(args) < 2:
                 raise click.UsageError("Spell name required for macro spells")
             spell_name = args[1]
 
-            description = click.prompt("Enter spell description")
+            click.echo(click.style("\nBeginning spellcraft...", fg="bright_magenta", bold=True))
+            description = click.prompt(get_mystical_prompt("Enter spell description", "description"))
+            
+            click.echo(click.style("\nGathering commands...", fg="bright_blue", bold=True))
             commands = []
             for i in range(num_commands):
-                cmd = click.prompt(f"Enter command {i + 1}")
+                cmd = click.prompt(get_mystical_prompt(f"Command {i + 1}", "command"))
                 commands.append(cmd)
+                click.echo(click.style("Command recorded", fg="bright_green"))
 
+            click.echo(click.style("\nGenerating spell...", fg="bright_yellow", bold=True))
             recipe = SpellRecipe(spell_name, "macro")
             bundle_path = recipe.create_macro_spell(commands, description)
+            
+            # Simplified sigil message
+            sigil_path = f"{recipe.temp_dir}/{spell_name}/{spell_name}_sigil.svg"
+            click.echo(click.style("Generating sigil at:", fg="bright_blue", bold=True) + 
+                      click.style(f" {sigil_path}", fg="cyan"))
+            
             click.echo(get_success_message(f"Spell crafted successfully: {bundle_path}"))
             return
         except ValueError:
