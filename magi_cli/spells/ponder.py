@@ -346,19 +346,51 @@ class SpellRegistry:
         return hashlib.sha256(content.encode()).hexdigest()
 
 @click.command()
-@click.argument('args', nargs=-1, required=False)
-@click.option('--archive', '-a', is_flag=True, help='Save to orb without installing')
+@click.argument('args', nargs=-1)
+@click.option('--archive', is_flag=True, help='Include archived spells in search')
 def ponder(args, archive):
-    """'pd' - Ponder your .orb and the Chamber to gain insight into available spells both locally and in the astral plane."""
+    """Explore available spells in your grimoire and the astral chamber.
+    
+    Ponder allows you to:
+    \b
+    - View all available spells locally and in the chamber
+    - Search for specific spells by name
+    - Examine spell details and requirements
+    - Synchronize with the chamber to discover new spells
+    """
     registry = SpellRegistry()
-
+    
     if not args:
-        # Interactive mode
-        click.echo("You ponder the orb and gaze into the distant chamber...")
-        registry.list_spells()
+        click.echo(click.style("\nYou ponder the orb and gaze into the distant chamber...", fg="bright_magenta", bold=True))
+
+        # Display chamber spells first
+        manifest = registry.fetch_spell_manifest()
+        if manifest and "spells" in manifest:
+            click.echo(click.style("\n=== Spells Known to the Chamber ===", fg="bright_blue", bold=True))
+            for spell_name, spell_info in manifest["spells"].items():
+                alias = spell_info.get("alias", "")
+                if alias == spell_name:  # Skip alias if it's the same as the name
+                    alias = ""
+                description = spell_info.get("description", "No description")
+                
+                # Format the output based on whether there's an alias
+                if alias:
+                    click.echo(click.style(f"{spell_name}", fg="magenta") + 
+                             click.style(f" '{alias}' - ", fg="cyan") + 
+                             click.style(description, fg="bright_white"))
+                else:
+                    click.echo(click.style(f"{spell_name} - ", fg="magenta") + 
+                             click.style(description, fg="bright_white"))
+
+        # Display orb spells (just names)
+        orb_spells = glob.glob(os.path.join(registry.orb_dir, "*.spell"))
+        if orb_spells:
+            click.echo(click.style("\n=== Spells Within Your Orb ===", fg="bright_blue", bold=True))
+            for orb_spell_path in orb_spells:
+                spell_name = os.path.splitext(os.path.basename(orb_spell_path))[0]
+                click.echo(click.style(f"{spell_name}", fg="magenta"))
 
         # Check for spells in orb that are not installed
-        orb_spells = glob.glob(os.path.join(registry.orb_dir, "*.spell"))
         missing_spells = []
         for orb_spell_path in orb_spells:
             spell_name = os.path.splitext(os.path.basename(orb_spell_path))[0]
@@ -367,21 +399,26 @@ def ponder(args, archive):
                 missing_spells.append(spell_name)
 
         if missing_spells:
-            click.echo("\nYour orb holds spells that you have not yet mastered:")
+            click.echo(click.style("\nYour orb holds spells that you have not yet mastered:", fg="bright_yellow", bold=True))
             for spell_name in missing_spells:
-                click.echo(f"- {spell_name}")
-            if click.confirm("Would you like to relearn them from the chamber?"):
+                click.echo(click.style(f"- {spell_name}", fg="yellow"))
+            if click.confirm(click.style("Would you like to relearn them from the chamber?", fg="bright_yellow")):
                 for spell_name in missing_spells:
                     result = registry.fetch_spell(spell_name)
                     if result:
                         content, _, requirements = result
                         registry.install_spell(spell_name, content, requirements)
                     else:
-                        click.echo(f"Failed to relearn '{spell_name}'.")
+                        click.echo(click.style("Failed to relearn ", fg="red") + 
+                                 click.style(f"'{spell_name}'", fg="bright_red"))
             else:
-                click.echo("You decide to keep the knowledge latent within your orb.")
-
-        spell_name = click.prompt("\nWhich spell would you like to ponder? (or 'sync' to synchronize with chamber)", type=str)
+                click.echo(click.style("You decide to keep the knowledge latent within your orb.", fg="bright_magenta"))
+        
+        spell_name = click.prompt(
+            click.style("\nWhich spell would you like to ponder?", fg="bright_yellow") + 
+            click.style(" (or 'sync' to synchronize with chamber)", fg="yellow"), 
+            type=str
+        )
 
         if spell_name.lower() == 'sync':
             click.echo("Initiating mystical synchronization...")

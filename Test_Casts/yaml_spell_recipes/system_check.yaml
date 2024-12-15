@@ -1,0 +1,95 @@
+name: system_check
+description: A spell that performs system health checks
+type: script
+shell_type: shell
+
+code: |
+  #!/bin/bash
+
+  # Detect operating system
+  OS="$(uname -s)"
+  
+  if [ "$OS" = "Linux" ]; then
+    # Linux commands
+    echo "Running on Linux system"
+
+    echo -e "\nDisk Space Usage:"
+    df -h | grep -E '^/dev'
+
+    echo -e "\nMemory Usage:"
+    free -h
+
+    echo -e "\nCPU Load:"
+    uptime
+
+    echo -e "\nKey Services Status:"
+    services=$(cat "$(dirname "$0")/../artifacts/config/services.txt")
+    for service in $services; do
+      echo "- $service: $(systemctl is-active $service 2>/dev/null || echo 'not found')"
+    done
+  elif [ "$OS" = "MINGW64_NT-10.0" ]; then
+    # Windows commands
+    echo "Running on Windows system"
+
+    echo -e "\nDisk Space Usage:"
+    wmic logicaldisk get size,freespace,caption
+
+    echo -e "\nMemory Usage:"
+    wmic OS get TotalVisibleMemorySize,FreePhysicalMemory
+
+    echo -e "\nCPU Load:"
+    wmic cpu get loadpercentage
+
+    echo -e "\nKey Services Status:"
+    services=$(cat "$(dirname "$0")/../artifacts/config/services.txt")
+    for service in $services; do
+      echo "- $service: $(sc query $service | findstr /C:\"STATE\" || echo 'not found')"
+    done
+  else
+    echo "Unsupported operating system: $OS"
+  fi
+  
+  # Print summary
+  cat "$(dirname "$0")/../artifacts/templates/summary.txt"
+
+artifacts:
+  - path: lib/utils.sh
+    content: |
+      #!/bin/bash
+      
+      check_disk_space() {
+        echo "Checking disk space..."
+        df -h | grep -E '^/dev'
+      }
+      
+      check_memory_usage() {
+        echo "Checking memory usage..."
+        free -h
+      }
+      
+      check_cpu_load() {
+        echo "Checking CPU load..."
+        uptime
+      }
+      
+      check_running_services() {
+        echo "Checking services..."
+        services=$(cat "$(dirname "$0")/../config/services.txt")
+        for service in $services; do
+          echo "- $service: $(systemctl is-active $service 2>/dev/null || echo 'not found')"
+        done
+      }
+      
+  - path: templates/summary.txt
+    content: |
+      
+      === Summary ===
+      System health check complete
+      See detailed logs in /var/log/system-check.log
+      
+  - path: config/services.txt
+    content: |
+      sshd
+      network
+      firewalld
+      docker

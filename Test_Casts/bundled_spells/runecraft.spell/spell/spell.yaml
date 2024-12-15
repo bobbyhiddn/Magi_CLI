@@ -1,0 +1,13 @@
+description: Generate an enchanted rune to serve as a button that executes a script
+entry_point: spell/runecraft.py
+name: runecraft
+shell_type: python
+type: bundled
+version: 1.0.0
+dependencies:
+  - click
+  - requests
+  - Pillow
+  - openai
+  - PyQt5
+  - jinja2

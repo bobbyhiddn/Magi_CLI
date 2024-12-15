@@ -1,0 +1,9 @@
+name: ascii_art
+version: 1.0.0
+type: bundled
+shell_type: python
+entry_point: ascii_art.py
+description: Convert text into fun ASCII art using various font styles!
+dependencies:
+  python:
+    - art>=6.0

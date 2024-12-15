@@ -1,0 +1,18 @@
+name: hello
+description: A simple greeting spell
+type: script
+shell_type: python
+version: "1.0.0"
+entry_point: main.py
+
+# The spell implementation
+code: |
+  import click
+
+  @click.command()
+  def main():
+      """Print a magical greeting."""
+      click.echo("Hello from the magical realm!")
+
+  if __name__ == '__main__':
+      main()

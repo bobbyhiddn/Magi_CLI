@@ -1,0 +1,29 @@
+name: clipper
+description: A spell to enchant the contents of a given file and transport them directly to the wielder's clipboard.
+type: script
+shell_type: python
+requires:
+  - pyperclip>=1.8.2
+code: |
+  #!/usr/bin/env python3
+  import pyperclip
+  import click
+
+  @click.command()
+  @click.argument('file_path', type=click.Path(exists=True, readable=True, dir_okay=False))
+  def clipper(file_path):
+      """
+      Enchants the contents of the specified file and transports it directly to the clipboard.
+      """
+      try:
+          with open(file_path, 'r', encoding='utf-8') as file:
+              contents = file.read()
+              pyperclip.copy(contents)
+              print(f"The mystical energies have successfully transcribed the contents of {file_path} to your clipboard.")
+      except Exception as e:
+          print(f"Failed to enact the spell due to: {e}")
+
+  if __name__ == '__main__':
+      clipper()
+
+artifacts: []
