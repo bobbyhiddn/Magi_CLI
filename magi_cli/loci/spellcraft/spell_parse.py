@@ -11,7 +11,7 @@ import shutil
 from pathlib import Path
 from typing import Tuple, Dict, Any, Optional, List
 from magi_cli.spells import SANCTUM_PATH
-from magi_cli.loci.sigildry import Sigildry
+from magi_cli.loci.spellcraft.sigildry import Sigildry
 
 class SpellParser:
     """Parser for spell bundles with enhanced validation."""

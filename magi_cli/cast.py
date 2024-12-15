@@ -5,7 +5,7 @@ import os
 import sys
 import glob
 from magi_cli.spells import commands_list, aliases, SANCTUM_PATH
-from magi_cli.loci.spell_parse import SpellParser  # Import SpellParser
+from magi_cli.loci.spellcraft.spell_parse import SpellParser  # Import SpellParser
 
 @click.group()
 @click.pass_context

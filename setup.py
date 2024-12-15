@@ -6,7 +6,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='magi_cli_pypi',
-    version='1.0.1',  # Make sure to increment this if you are republishing
+    version='1.0.2',  # Make sure to increment this if you are republishing
     packages=find_packages(),
     package_data={'magi_cli': ['artifacts/*.png']},
     include_package_data=True,

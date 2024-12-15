@@ -7,7 +7,7 @@ import requests
 import subprocess
 from pathlib import Path
 from typing import Dict, Any, Optional
-from magi_cli.modules.spell_bundle import SpellBundle
+from magi_cli.loci.spellcraft.spell_bundle import SpellBundle
 from magi_cli.spells import SANCTUM_PATH
 
 class SpellBuilder:

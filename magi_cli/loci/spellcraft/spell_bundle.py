@@ -13,7 +13,7 @@ import hashlib
 from enum import Enum
 import os
 from magi_cli.spells import SANCTUM_PATH
-from magi_cli.loci.sigildry import Sigildry
+from magi_cli.loci.spellcraft.sigildry import Sigildry
 
 class SpellType(str, Enum):
     BUNDLED = "bundled"
